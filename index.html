@@ -478,6 +478,16 @@ function lanc(el){const st=VS.lf=VS.lf||{mes:'',tipo:'',centro:'',cat:'',user:''
 
 /* ============ RELATÓRIOS ============ */
 let CSVR=[];
+// resumo de cada sócio: desembolso, reembolsos e retiradas
+function socios(R){const z={des:0,ap:0,col:0,re:0,rec:0,ret:0,falta:0,pend:0};return vivos('Usuarios').filter(u=>u.ativo!=='0'||R.U[u.id]).sort(byNome).map(u=>({nome:u.nome,x:R.U[u.id]||z}))}
+const LIN_SOCIO=[['Despesas pagas do bolso',x=>x.des],['Aportes à Conta 2D',x=>x.ap],['<b>Desembolso total</b>',x=>x.col,1],['Reembolsos recebidos',x=>x.re],['Receitas que ficaram com o sócio',x=>x.rec],['<b>Falta recuperar</b>',x=>x.falta,1],['<b>Retiradas (remuneração)</b>',x=>x.ret,1]];
+function sociosH(R,per){const ss=socios(R),tot=f=>sum(ss.map(s=>f(s.x)));
+ return`<div class="panel"><h3>4. Resumo por sócio (${per})</h3>
+ <div class="so-cel">${ss.map(s=>acord('👤 '+esc(s.nome),fR(s.x.col),'',LIN_SOCIO.map(([n,f,d])=>[n,fR(f(s.x)),d]),true)).join('')||'<div class="empty">Nenhum sócio cadastrado.</div>'}${ss.length>1?acord('Total dos sócios',fR(tot(x=>x.col)),'',LIN_SOCIO.map(([n,f,d])=>[n,fR(tot(f)),d])):''}${ss.length?'<div class="help">O valor ao lado do nome é o desembolso total.</div>':''}</div>
+ <div class="tw so-pc"><table><thead><tr><th>Resumo</th>${ss.map(s=>`<th class="num">${esc(s.nome)}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>${LIN_SOCIO.map(([n,f,d])=>`<tr class="${d?'dest':''}"><td>${n}</td>${ss.map(s=>`<td class="num">${fR(f(s.x))}</td>`).join('')}<td class="num"><b>${fR(tot(f))}</b></td></tr>`).join('')}</tbody></table></div>
+ ${ss.length?barras(ss.map(s=>s.nome),[{nome:'Desembolso',cor:'#c0533f',values:ss.map(s=>s.x.col)},{nome:'Reembolsos',cor:'#3f7f39',values:ss.map(s=>s.x.re)},{nome:'Retiradas',cor:'#9a6a2f',values:ss.map(s=>s.x.ret)}]):''}
+ ${FP.centros.length?'<div class="banner w" style="margin:10px 0 0">Com filtro de centros, só as despesas do bolso e as receitas das culturas escolhidas aparecem. Aportes, reembolsos e retiradas ficam de fora, porque não pertencem a uma cultura.</div>':''}
+ <p class="help">Só valores já pagos ou recebidos. Desembolso = despesas pagas do bolso + aportes. Falta recuperar = desembolso − reembolsos − receitas que ficaram com o sócio (negativo = ele recebeu mais do que colocou). Retiradas são remuneração e não abatem o que falta recuperar. O que a Conta 2D pagou não entra aqui.</p></div>`}
 function rel(el){const R=calcular(FP),cs=Object.values(R.C);CSVR=[];
  const linhas=[['Quantidade vendida',x=>x.q?fN(x.q,2)+' '+esc(x.c.unidade||''):'–',x=>x.q,null],['Área (ha)',x=>x.area?fN(x.area,2):'–',x=>x.area,null],['Produtividade (unid./ha)',x=>fN(x.prodHa,2),x=>x.prodHa,null],
   ['Preço médio de venda (R$/unid.)',x=>fRu(x.pm),x=>x.pm,null],['<b>Renda bruta (RB)</b>',x=>fR(x.rb),x=>x.rb,'rb',1],['<b>COE — custo operacional efetivo</b>',x=>fR(x.coe),x=>x.coe,'coe',1],
@@ -500,8 +510,9 @@ function rel(el){const R=calcular(FP),cs=Object.values(R.C);CSVR=[];
  <div class="panel"><h3>3. Custos por categoria (centro de custo específico) e cultura</h3><div class="so-cel">${cats.map(k=>{const t=sum(cs.map(x=>x.cat[k.id]||0));return acord(esc(k.nome),fR(t),'',[['% do custo total',fP(R.T.coe?t/R.T.coe*100:null)],...cs.filter(x=>x.cat[k.id]).map(x=>[esc(x.c.nome),fR(x.cat[k.id])])])}).join('')||'<div class="empty">Sem despesas no período.</div>'}</div><div class="tw so-pc"><table class="res"><thead><tr><th>Categoria</th>${cs.map(x=>`<th class="num">${esc(x.c.nome)}</th>`).join('')}<th class="num">Total</th><th class="num">% do custo</th></tr></thead><tbody>
  ${cats.map(k=>{const t=sum(cs.map(x=>x.cat[k.id]||0));return`<tr><td>${esc(k.nome)}</td>${cs.map(x=>`<td class="num">${x.cat[k.id]?fR(x.cat[k.id]):'–'}</td>`).join('')}<td class="num"><b>${fR(t)}</b></td><td class="num">${fP(R.T.coe?t/R.T.coe*100:null)}</td></tr>`}).join('')||`<tr><td colspan="${cs.length+3}" class="empty">Sem despesas no período.</td></tr>`}
  <tr class="dest"><td>Total</td>${cs.map(x=>`<td class="num">${fR(x.coe)}</td>`).join('')}<td class="num">${fR(R.T.coe)}</td><td></td></tr></tbody></table></div></div>
+ ${sociosH(R,per)}
  ${R.semRateio.length?`<div class="banner e">⚠ ${R.semRateio.length} lançamento(s) sem centro de custo não entraram nos cálculos.</div>`:''}`;
- $('#rCsv').onclick=()=>csv('relatorio_resultados',[['Seção','Indicador',...cs.map(x=>x.c.nome),'Total'],...CSVR]);filtroEv(()=>rel(el))}
+ $('#rCsv').onclick=()=>csv('relatorio_resultados',[['Seção','Indicador',...cs.map(x=>x.c.nome),'Total'],...CSVR,[],['Resumo por sócio','Indicador',...socios(R).map(s=>s.nome),'Total'],...LIN_SOCIO.map(([n,f])=>['Resumo por sócio',n.replace(/<[^>]+>/g,''),...socios(R).map(s=>csvNum(f(s.x))),csvNum(sum(socios(R).map(s=>f(s.x))))])]);filtroEv(()=>rel(el))}
 
 /* ============ DESEMBOLSO POR USUÁRIO ============ */
 function usuarios(el){const R=calcular(FP),cs=Object.values(R.C);const us=[...vivos('Usuarios').sort(byNome).map(u=>({id:u.id,nome:u.nome})),...(R.U['?']?[{id:'?',nome:'(sem usuário)'}]:[])].filter(u=>R.U[u.id]);const usC=[...(R.U[CONTA]?[{id:CONTA,nome:CONTA_NOME}]:[]),...us],K=caixa(FP);
