@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2e5e2a">
+<title>Agropecuária 2D</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Agro 2D">
+<meta name="format-detection" content="telephone=no">
+<style>
+:root{--v:#2e5e2a;--v2:#3f7f39;--vc:#e8f2e5;--terra:#9a6a2f;--bg:#f5f5f0;--card:#fff;--t:#1e261d;--m:#69756a;--b:#dfe3da;--r:#b23a2e;--rc:#fbe8e5;--a:#b7791f;--ac:#fdf3df;--az:#2c6aa8}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,Roboto,Arial,sans-serif;background:var(--bg);color:var(--t);font-size:14px}
+header{background:var(--v);color:#fff;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+header h1{margin:0;font-size:18px}
+header .sub{font-size:12px;opacity:.85}
+#sync{margin-left:auto;font-size:12px;background:rgba(255,255,255,.16);padding:5px 10px;border-radius:14px;cursor:pointer;border:0;color:#fff}
+nav{background:#fff;border-bottom:1px solid var(--b);display:flex;overflow-x:auto;position:sticky;top:0;z-index:5}
+nav button{border:0;background:none;padding:12px 14px;font-size:14px;color:var(--m);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--v);border-color:var(--v);font-weight:600}
+main{padding:14px;max-width:1300px;margin:0 auto}
+h2{margin:4px 0 12px;font-size:19px}
+h3{margin:0 0 10px;font-size:15px;color:var(--v)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:12px}
+.card .l{font-size:12px;color:var(--m)}.card .x{font-size:21px;font-weight:600;margin-top:3px}.card .s{font-size:11px;color:var(--m)}
+.pos{color:var(--v2)}.neg{color:var(--r)}
+.panel{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:14px;margin-bottom:14px;overflow-x:auto;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.sp{flex:1}
+.btn{background:var(--v);color:#fff;border:0;border-radius:7px;padding:9px 14px;font-size:14px;cursor:pointer}
+.btn:hover{background:var(--v2)}.btn.sec{background:#fff;color:var(--v);border:1px solid var(--v)}.btn.red{background:var(--r)}.btn.sm{padding:5px 9px;font-size:12px}
+.btn.big{padding:14px 18px;font-size:16px;flex:1;min-width:150px}
+input,select,textarea{font:inherit;padding:8px;border:1px solid #c8cfc3;border-radius:7px;background:#fff;color:var(--t);width:100%}
+.toolbar input,.toolbar select{width:auto}
+.tw{overflow-x:auto;background:#fff;border:1px solid var(--b);border-radius:8px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 9px;border-bottom:1px solid #eef0eb;text-align:left;white-space:nowrap}
+th{background:#f7f8f4;font-size:12px;color:var(--m);cursor:pointer;user-select:none}
+.num{text-align:right}
+tbody tr:hover{background:#f7faf5}
+td.act{text-align:right}td.act button{border:0;background:none;font-size:16px;cursor:pointer;padding:2px 5px}
+.empty{text-align:center;color:var(--m);padding:18px}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;background:#eef0eb}
+.tag.g{background:var(--vc);color:var(--v)}.tag.r{background:var(--rc);color:var(--r)}.tag.y{background:var(--ac);color:var(--a)}
+.pager{padding:8px;font-size:12px;color:var(--m);display:flex;gap:8px;align-items:center}.pager button{border:1px solid var(--b);background:#fff;border-radius:4px;padding:2px 8px;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:24px 8px;z-index:50}
+.modal.hide{display:none}
+.mbox{background:#fff;border-radius:12px;width:100%;max-width:760px}
+.mhead{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--b)}.mhead h3{margin:0;flex:1;font-size:16px}.mhead button{border:0;background:none;font-size:20px;cursor:pointer}
+#mBody{padding:16px}
+.form{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px}@media(max-width:650px){.form{grid-template-columns:1fr 1fr}.modal{padding:0}.mbox{border-radius:0;min-height:100%}}
+.fld span{display:block;font-size:12px;color:var(--m);margin-bottom:3px}.fld.w{grid-column:1/-1}.hide2{display:none!important}
+.sec-t{grid-column:1/-1;font-weight:600;color:var(--terra);border-bottom:1px solid var(--b);padding-bottom:3px;margin-top:6px}
+.fa{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.rt{grid-column:1/-1;border:1px solid var(--b);border-radius:8px;padding:8px}
+.rtl{display:grid;grid-template-columns:24px 1fr 90px 110px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px dashed #eceee8}
+.rtl input[type=checkbox]{width:20px;height:20px}.rtl .pc{text-align:right}.rtl .rv{text-align:right;font-size:12px;color:var(--m)}
+.rtt{display:flex;justify-content:space-between;padding-top:6px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid var(--b);border-radius:16px;padding:5px 12px;background:#fff;cursor:pointer;font-size:13px}.chip.on{background:var(--v);color:#fff;border-color:var(--v)}
+.chart svg{width:100%;height:auto;display:block}.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--m);margin-top:4px}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.banner{padding:10px 14px;border-radius:8px;margin-bottom:12px}.banner.w{background:var(--ac);border:1px solid #efd39a}.banner.e{background:var(--rc);border:1px solid #efb7ae}
+.help{font-size:13px;color:var(--m);line-height:1.55}
+.res th:first-child,.res td:first-child{position:sticky;left:0;background:#fff;z-index:1}.res tr.dest td{font-weight:600;background:#f7faf5}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#223;color:#fff;padding:10px 18px;border-radius:8px;opacity:0;transition:.3s;pointer-events:none;z-index:99}#toast.on{opacity:1}
+.ph{display:none}
+:root{color-scheme:light}html{-webkit-text-size-adjust:100%}
+nav .ic{margin-right:5px}nav .cu{display:none}
+.so-cel{display:none}
+details.filtro>summary{cursor:pointer;font-size:13px;color:var(--v);font-weight:600;padding:2px 0}details.filtro[open]>summary{margin-bottom:8px}
+details.ac{border:1px solid var(--b);border-radius:9px;margin-bottom:8px;background:#fff}
+details.ac>summary{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;cursor:pointer;list-style:none;min-height:46px}
+details.ac>summary::-webkit-details-marker{display:none}details.ac>summary span:first-child::before{content:'▸ ';color:var(--m)}details.ac[open]>summary span:first-child::before{content:'▾ '}
+details.ac>summary b{white-space:nowrap}
+.ln{display:flex;justify-content:space-between;gap:12px;padding:8px 12px;border-top:1px solid #eef0eb;font-size:14px}.ln>span:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.ln.dest{background:#f7faf5;font-weight:600}
+.lc{padding:12px;border-bottom:1px solid #e6e9e2;cursor:pointer}.lc:active{background:#f2f6ef}
+.lc-t{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;font-size:15px}.lc-t>:first-child{min-width:0;overflow-wrap:anywhere}.lc-t>:last-child{white-space:nowrap;font-weight:600}
+.lc-s{font-size:13px;color:var(--m);margin-top:3px;overflow-wrap:anywhere}.lc-a{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.bc{margin-bottom:12px}.bc-t{font-weight:600;font-size:14px;margin-bottom:3px}.bc-l{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:12px;margin-bottom:3px}.bc-l i{display:block;height:14px;border-radius:3px;min-width:2px}.bc-l span{white-space:nowrap}
+@media screen and (max-width:950px){
+ .so-pc{display:none!important}.so-cel{display:block}
+ body{padding-bottom:calc(70px + env(safe-area-inset-bottom))}body.trava{overflow:hidden}
+ header{flex-wrap:nowrap;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top))}header h1{font-size:16px;white-space:nowrap}header>div:nth-child(2){min-width:0}header .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #sync{white-space:nowrap;min-height:40px;padding:6px 12px;border-radius:20px;flex:none}
+ nav{position:fixed;top:auto;bottom:0;left:0;right:0;border-bottom:0;border-top:1px solid var(--b);overflow:visible;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+ nav button{flex:1 1 0;min-width:0;min-height:58px;padding:5px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-bottom:0;border-top:3px solid transparent;font-size:11px}
+ nav .ic{font-size:20px;margin:0}nav .lo{display:none}nav .cu{display:block}
+ main{padding:10px 10px 4px}h2{font-size:18px}.panel{padding:12px}
+ input,select,textarea{font-size:16px;min-height:44px}
+ .btn{min-height:44px}.btn.sm{min-height:42px;font-size:13px;padding:8px 12px}.btn.big{min-width:0;padding:14px 10px;font-size:15px}
+ .chip{min-height:40px;display:inline-flex;align-items:center;font-size:14px}
+ .toolbar select,.toolbar input{flex:1 1 140px;min-width:0}.toolbar .busca{flex:1 1 100%}.toolbar .sp{display:none}
+ .cards{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}.fld.wm{grid-column:1/-1;order:-1}.card{padding:10px;min-width:0}.card .x{font-size:clamp(14px,4.3vw,19px);overflow-wrap:anywhere}
+ .help{overflow-wrap:anywhere}.panel td{white-space:normal}
+ .pager button{min-width:44px;min-height:44px;font-size:18px}
+ .modal{height:100vh;height:100dvh;padding:0;overscroll-behavior:contain}.mbox{border-radius:0;min-height:100%;display:flex;flex-direction:column}
+ .mhead{position:sticky;top:0;background:#fff;z-index:3;padding:6px 6px 6px 14px;padding-top:max(6px,env(safe-area-inset-top))}.mhead button{min-width:46px;min-height:46px}
+ #mBody{padding:12px 12px 0;flex:1;display:flex;flex-direction:column}#mBody form{flex:1;display:flex;flex-direction:column}
+ .form{grid-template-columns:1fr 1fr;gap:10px}.form>span{display:none}.fld{min-width:0;display:flex;flex-direction:column;justify-content:flex-end}
+ .fa{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--b);margin:14px -12px 0;margin-top:auto;padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom));z-index:3;flex-wrap:nowrap}.fa .btn{flex:1;padding:9px 6px}.fa .sp{display:none}
+ .rt{margin-bottom:4px}.rtl{grid-template-columns:30px 1fr 92px;grid-template-areas:'c n p' 'c v p';gap:0 8px;padding:7px 0}.rtl input[type=checkbox]{grid-area:c;width:26px;height:26px;min-height:0}.rtl>span:nth-child(2){grid-area:n;font-size:15px;overflow-wrap:anywhere}.rtl .pc{grid-area:p}.rtl .rv{grid-area:v;text-align:left}
+ .rt .toolbar .btn{flex:1 1 45%}
+ #toast{bottom:calc(84px + env(safe-area-inset-bottom));width:max-content;max-width:90vw;text-align:center}
+}
+@media screen and (max-width:330px){.form{grid-template-columns:1fr}nav .cu{font-size:10px}}
+@media print{header,nav,.np,.banner,#toast{display:none!important}body{background:#fff;font-size:11px}main{padding:0;max-width:none}.panel{break-inside:avoid;border:1px solid #ccc;padding:8px;overflow:visible}.ph{display:block;border-bottom:2px solid var(--v);margin-bottom:8px}th{background:#eee}}
+</style>
+</head>
+<body>
+<header><div style="font-size:24px">🌽</div><div><h1>Agropecuária 2D</h1><div class="sub" id="hSub">Gestão de custos e resultados</div></div><button id="sync" onclick="sincronizar(true)">…</button></header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<div id="modal" class="modal hide"><div class="mbox"><div class="mhead"><h3 id="mT"></h3><button onclick="fecharModal()">✕</button></div><div id="mBody"></div></div></div>
+<div id="toast"></div>
+<script>
+"use strict";
+/* ============ UTILITÁRIOS ============ */
+const $=s=>document.querySelector(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const hoje=()=>iso(new Date());
+const addDias=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
+const fD=s=>s?String(s).slice(0,10).split('-').reverse().join('/'):'';
+const fN=(n,d=0)=>n==null||n===''||!isFinite(n)?'–':Number(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fR=n=>n==null||n===''||!isFinite(n)?'–':Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+// valores por unidade: abaixo de R$ 1 mostra 4 casas (ex.: custo por espiga)
+const fRu=n=>n==null||n===''||!isFinite(n)?'–':Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:Math.abs(n)<1?4:2});
+const fP=n=>n==null||!isFinite(n)?'–':fN(n,1)+'%';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{if(v==null)return null;v=String(v).trim().replace(/^R\$\s*/,'');if(v==='')return null;if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');const n=parseFloat(v);return isNaN(n)?null:n};
+const nStr=v=>v===''||v==null?'':String(v).replace('.',',');
+const sum=a=>a.reduce((s,x)=>s+(+x||0),0);
+const byNome=(a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR');
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2600)}
+const mq=matchMedia('(max-width:950px)'),cel=()=>mq.matches;
+const acord=(tit,val,cls,linhas,aberto)=>`<details class="ac"${aberto?' open':''}><summary><span>${tit}</span><b class="${cls||''}">${val}</b></summary><div>${linhas.map(([l,v,d])=>`<div class="ln${d?' dest':''}"><span>${l}</span><span>${v}</span></div>`).join('')}</div></details>`;
+// no celular abre o menu de compartilhar (WhatsApp, Drive, e-mail); no computador baixa o arquivo
+async function baixar(blob,nome){if(cel()&&navigator.canShare){try{const f=new File([blob],nome,{type:blob.type.split(';')[0]});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:nome});return}}catch(e){if(e.name==='AbortError')return}}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function csv(nome,rows){const s='﻿'+rows.map(r=>r.map(v=>{v=String(v??'');return/[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(';')).join('\r\n');baixar(new Blob([s],{type:'text/csv;charset=utf-8'}),nome+'_'+hoje()+'.csv')}
+const csvNum=v=>v==null||v===''||!isFinite(v)?'':String(Math.round(v*100)/100).replace('.',',');
+
+/* ============ DADOS PADRÃO (iguais aos do Code.gs) ============ */
+const DATA_PADRAO='2000-01-01T00:00:00.000Z';
+const CENTROS_PADRAO=[['c-milho','Milho','espigas'],['c-melancia','Melancia','kg'],['c-feijao','Feijão','kg'],['c-ovinos','Ovinos','kg vivo'],['c-silagem','Silagem','tonelada']];
+const CATEGORIAS_PADRAO=[['k-corretivos','Corretivos (calcário, gesso)','COE'],['k-fertilizantes','Fertilizantes e adubos','COE'],['k-sementes','Sementes e mudas','COE'],['k-defensivos','Defensivos agrícolas','COE'],['k-mecanizacao','Operações mecanizadas / hora-máquina','COE'],['k-combustivel','Combustível e lubrificantes','COE'],['k-maodeobra','Mão de obra contratada','COE'],['k-irrigacao','Irrigação e energia','COE'],['k-embalagens','Embalagens e lonas','COE'],['k-inoculantes','Inoculantes e aditivos','COE'],['k-racao','Ração, sal e suplementos','COE'],['k-sanidade','Sanidade animal','COE'],['k-animais','Aquisição de animais','COE'],['k-frete','Frete e comercialização','COE'],['k-manutencao','Manutenção de máquinas e benfeitorias','COE'],['k-arrendamento','Arrendamento','COE'],['k-assistencia','Assistência técnica','COE'],['k-impostos','Impostos e taxas (Funrural etc.)','COE'],['k-juros','Juros de custeio','COE'],['k-outras','Outras despesas','COE'],['k-depreciacao','Depreciação de máquinas e benfeitorias','COT'],['k-prolabore','Mão de obra familiar / pró-labore','COT']];
+const UNIDADES=['espigas','saca 60 kg','kg','tonelada','unidade','kg vivo','cabeça','caixa','dúzia','litro','fardo'];
+const NUMS=['quantidade','precoUnit','valor','area','servidorEm'];
+
+/* ============ ESTADO LOCAL ============ */
+const TABS=['Lancamentos','Centros','Categorias','Usuarios'];
+function novoEstado(){return{T:{Lancamentos:{},Centros:{},Categorias:{},Usuarios:{}},pend:{},env:{},cursor:0,cursorEm:0,cfg:{url:'',chave:'',usuarioId:'',ultimaSync:null,configurado:false,em:0}}}
+let S=novoEstado(),REV=0;
+const vivos=t=>Object.values(S.T[t]).filter(r=>r.excluido!=='1');
+const ativos=t=>vivos(t).filter(r=>r.ativo!=='0').sort(byNome);
+const eu=()=>S.T.Usuarios[S.cfg.usuarioId];
+function semearLocal(){CENTROS_PADRAO.forEach(([id,nome,unidade])=>{const x=S.T.Centros[id];if(!x||(x.atualizadoEm===DATA_PADRAO&&!x.servidorEm))S.T.Centros[id]={id,nome,unidade,area:'',ciclo:'',ativo:'1',autor:'sistema',atualizadoEm:DATA_PADRAO,excluido:''}});
+ CATEGORIAS_PADRAO.forEach(([id,nome,grupo])=>{if(!S.T.Categorias[id])S.T.Categorias[id]={id,nome,grupo,ativo:'1',autor:'sistema',atualizadoEm:DATA_PADRAO,excluido:''}})}
+// carimbo sempre maior que o anterior: evita que relógio atrasado faça o servidor recusar a edição
+function carimbo(...ant){let t=Date.now();ant.forEach(a=>{const x=Date.parse(a||'');if(x>=t)t=x+1});return new Date(t).toISOString()}
+function cfgSet(o){Object.assign(S.cfg,o,{em:Date.now()});salvar()}
+function zerarCursor(){S.cursor=0;S.cursorEm=Date.now()}
+function gravar(tab,rec){const ant=S.T[tab][rec.id];rec.atualizadoEm=carimbo(rec.atualizadoEm,ant&&ant.atualizadoEm);rec.autor=eu()?eu().nome:'';if(rec.excluido!=='1')rec.excluido='';S.T[tab][rec.id]=rec;S.pend[rec.id]=tab;REV++;marcar();salvarJa();agendarSync()}
+function excluir(tab,id){gravar(tab,Object.assign({},S.T[tab][id],{excluido:'1'}))}
+function limpar(r){NUMS.forEach(k=>{if(k in r)r[k]=r[k]===''||r[k]==null?'':Number(r[k])});['excluido','ativo'].forEach(k=>{if(k in r)r[k]=String(r[k]===true?'1':r[k]===false?'':r[k])});return r}
+function rateio(l){try{const r=JSON.parse(l.rateio||'[]');return Array.isArray(r)?r.filter(x=>x&&x.c&&+x.p>0).map(x=>({c:x.c,p:+x.p})):[]}catch(e){return[]}}
+
+/* ============ PERSISTÊNCIA (IndexedDB + localStorage) ============ */
+let _db=null;
+function idb(){if(_db)return Promise.resolve(_db);return new Promise((res,rej)=>{const r=indexedDB.open('Agro2D',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{_db=r.result;res(_db)};r.onerror=()=>rej(r.error)})}
+async function kv(mode,k,v){const d=await idb();return new Promise((res,rej)=>{const tx=d.transaction('kv',mode),o=tx.objectStore('kv'),q=mode==='readonly'?o.get(k):o.put(v,k);tx.oncomplete=()=>res(q.result);tx.onerror=()=>rej(tx.error)})}
+// Junta outra cópia dos dados em D, registro a registro: vale a versão mais recente e nada pendente é descartado.
+// Uma pendência só some quando a planilha confirmou (env) aquela versão ou uma mais nova.
+function juntar(D,O){if(!O||!O.T)return false;let mudou=false;const env=O.env||{};
+ for(const id in env)if(!D.env[id]||env[id]>D.env[id])D.env[id]=env[id];
+ TABS.forEach(t=>{const a=D.T[t],b=O.T[t]||{};for(const id in b){if(!b[id])continue;if(!a[id]||String(b[id].atualizadoEm||'')>String(a[id].atualizadoEm||'')){a[id]=b[id];mudou=true}}});
+ for(const id in O.pend||{})if(!D.pend[id])D.pend[id]=O.pend[id];
+ for(const id in D.pend){const r=(D.T[D.pend[id]]||{})[id];if(!r||(D.env[id]&&D.env[id]>=r.atualizadoEm))delete D.pend[id]}
+ const ca=D.cursorEm||0,cb=O.cursorEm||0;if(cb>ca){D.cursor=O.cursor||0;D.cursorEm=cb}else if(cb===ca)D.cursor=Math.max(D.cursor||0,O.cursor||0);
+ const us=[D.cfg.ultimaSync,O.cfg&&O.cfg.ultimaSync].filter(Boolean).sort().pop()||null;
+ if(O.cfg&&((O.cfg.em||0)>(D.cfg.em||0)||(!D.cfg.em&&!D.cfg.configurado)))Object.assign(D.cfg,O.cfg);D.cfg.ultimaSync=us;return mudou}
+let tSalvar=null,erroLocal=false,vMem=0,vDisco=0;
+const marcar=()=>{vMem++};
+function salvar(){marcar();clearTimeout(tSalvar);tSalvar=setTimeout(salvarJa,200)}
+// Lê, junta e grava na mesma transação: outra janela aberta nunca é sobrescrita.
+async function salvarJa(){clearTimeout(tSalvar);tSalvar=null;const v=vMem;let ok=false,mudou=false,okIdb=false;
+ try{const d=await idb();await new Promise((res,rej)=>{const tx=d.transaction('kv','readwrite'),o=tx.objectStore('kv'),q=o.get('estado');
+   q.onsuccess=()=>{try{let ant=null;if(q.result){try{ant=JSON.parse(q.result)}catch(e){o.put(q.result,'estado_danificado_'+Date.now())}}mudou=juntar(S,ant);o.put(JSON.stringify(S),'estado')}catch(e){tx.abort();rej(e)}};
+   tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error)});ok=okIdb=true}catch(e){}
+ if(gravarLS())ok=true;else if(okIdb)try{localStorage.removeItem('agro2d')}catch(e){}
+ if(ok)vDisco=Math.max(vDisco,v);
+ if(!ok&&!erroLocal)setTimeout(()=>alert('ATENÇÃO: o aparelho não conseguiu guardar os dados. Não feche o app antes de sincronizar.'),0);
+ erroLocal=!ok;if(mudou){REV++;if($('#modal').classList.contains('hide'))render();else precisaRender=true}statusSync()}
+function gravarLS(){try{const b=localStorage.getItem('agro2d');if(b){try{juntar(S,JSON.parse(b))}catch(e){}}localStorage.setItem('agro2d',JSON.stringify(S));return true}catch(e){return false}}
+async function carregar(){let A=null,B=null;try{const a=await kv('readonly','estado');if(a)A=JSON.parse(a)}catch(e){}try{const b=localStorage.getItem('agro2d');if(b)B=JSON.parse(b)}catch(e){}
+ S=novoEstado();juntar(S,A);juntar(S,B);if(A||B)salvar();
+ semearLocal();try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}REV++}
+const salvarSaindo=()=>{if(vMem>vDisco){gravarLS();salvarJa()}};
+window.addEventListener('beforeunload',salvarSaindo);window.addEventListener('pagehide',salvarSaindo);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)salvarSaindo();else agendarSync(300)});
+/* ============ SINCRONIZAÇÃO COM A PLANILHA ============ */
+let sincronizando=false,tSync=null,erroSync='';
+function agendarSync(ms=1500){if(!S.cfg.url)return;clearTimeout(tSync);tSync=setTimeout(()=>sincronizar(),ms)}
+async function chamar(corpo,url,chave){const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
+ try{const r=await fetch(url||S.cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({chave:chave??S.cfg.chave},corpo)),signal:ctl.signal,redirect:'follow'});
+  const txt=await r.text();let j;try{j=JSON.parse(txt)}catch(e){throw new Error('Resposta inesperada do servidor (confira o endereço e se a implantação está como "Qualquer pessoa").')}if(!j.ok)throw new Error(j.erro||'Erro no servidor');return j}
+ catch(e){if(e.name==='AbortError')throw new Error('Tempo esgotado (internet lenta?)');if(e instanceof TypeError)throw new Error('Sem conexão com a planilha');throw e}finally{clearTimeout(to)}}
+async function sincronizar(manual){if(!S.cfg.url){if(manual)ir('config');return}if(sincronizando)return;
+ if(!navigator.onLine){erroSync='Sem internet — lançamentos guardados no aparelho';statusSync();if(manual)toast(erroSync);return}
+ sincronizando=true;statusSync();let mudou=false;
+ try{for(let volta=0;volta<30;volta++){const ids=Object.keys(S.pend).slice(0,150);const mud=ids.map(id=>({tabela:S.pend[id],registro:S.T[S.pend[id]][id]})).filter(m=>m.registro);const env=mud.map(m=>[m.registro.id,m.registro.atualizadoEm]);
+   const j=await chamar({acao:'sync',cursor:S.cursor,mudancas:mud});
+   env.forEach(([id,at])=>{const t=S.pend[id];if(t&&S.T[t][id]&&S.T[t][id].atualizadoEm===at)delete S.pend[id];if(!S.env[id]||at>S.env[id])S.env[id]=at});
+   ids.forEach(id=>{const t=S.pend[id];if(t&&!S.T[t][id])delete S.pend[id]});
+   for(const r of j.registros||[]){const t=r.tabela;delete r.tabela;if(!S.T[t])continue;const loc=S.T[t][r.id];if(loc&&S.pend[r.id]&&String(loc.atualizadoEm)>String(r.atualizadoEm))continue;if(S.env[r.id]||S.pend[r.id]){S.env[r.id]=r.atualizadoEm;delete S.pend[r.id]}S.T[t][r.id]=limpar(r);mudou=true}
+   S.cursor=j.cursor||S.cursor;if(!Object.keys(S.pend).length)break}
+  S.cfg.ultimaSync=new Date().toISOString();erroSync='';if(manual)toast('Sincronizado com a planilha ✔')}
+ catch(e){erroSync=e.message;if(manual)toast('⚠ '+e.message)}
+ finally{sincronizando=false;salvar();if(mudou){REV++;if($('#modal').classList.contains('hide'))render();else precisaRender=true}statusSync()}}
+let precisaRender=false;
+setInterval(()=>{if(!document.hidden)sincronizar()},90000);
+window.addEventListener('online',()=>agendarSync(500));window.addEventListener('offline',statusSync);
+function statusSync(){const b=$('#sync');if(!b)return;const np=Object.keys(S.pend).length;let t;
+ if(erroLocal)t='⚠ erro ao salvar no aparelho';else if(!S.cfg.url)t='📴 Só neste aparelho';else if(sincronizando)t='🔄 Sincronizando…';else if(erroSync)t='⚠ '+(np?np+' pendente(s) • ':'')+(navigator.onLine?'falha na sincronização':'sem internet');
+ else if(np)t='⏳ '+np+' alteração(ões) a enviar';else t='✔ Sincronizado'+(S.cfg.ultimaSync?' '+new Date(S.cfg.ultimaSync).toLocaleTimeString('pt-BR').slice(0,5):'');
+ if(cel())t=erroLocal?'⚠ erro':!S.cfg.url?'📴 Local':sincronizando?'🔄 …':erroSync?'⚠ '+(np?np+' a enviar':(navigator.onLine?'falha':'sem net')):np?'⏳ '+np+' a enviar':'✔ '+(S.cfg.ultimaSync?new Date(S.cfg.ultimaSync).toLocaleTimeString('pt-BR').slice(0,5):'ok');
+ b.textContent=t;b.title=erroSync||'Clique para sincronizar agora'}
+
+/* ============ MODAL ============ */
+// O botão "voltar" do celular fecha o formulário em vez de sair do app
+let mSujo=false,popIgn=0;
+const modalAberto=()=>!$('#modal').classList.contains('hide');
+function abrirModal(t,h){$('#mT').textContent=t;$('#mBody').innerHTML=h;$('#modal').classList.remove('hide');$('#modal').scrollTop=0;document.body.classList.add('trava');mSujo=false;if(!(history.state&&history.state.m))history.pushState({m:1},'')}
+function fecharModal(pop){$('#modal').classList.add('hide');$('#mBody').innerHTML='';document.body.classList.remove('trava');mSujo=false;if(pop!==true&&!popIgn&&history.state&&history.state.m){popIgn++;history.back()}if(precisaRender){precisaRender=false;render()}}
+$('#mBody').addEventListener('input',()=>{mSujo=true});
+window.addEventListener('popstate',()=>{if(popIgn){popIgn--;return}if(modalAberto()){if(mSujo&&!confirm('Descartar o que foi preenchido?'))history.pushState({m:1},'');else fecharModal(true)}else if(ABA!=='painel')ir('painel',true)});
+mq.addEventListener('change',()=>{if(modalAberto())precisaRender=true;else render()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').classList.contains('hide'))fecharModal()});
+const opt=(v,l,sel)=>`<option value="${esc(v)}"${String(sel)===String(v)?' selected':''}>${esc(l)}</option>`;
+const fld=(l,inner,cls='')=>`<label class="fld ${cls}"><span>${l}</span>${inner}</label>`;
+
+/* ============ FORMULÁRIO DE LANÇAMENTO ============ */
+function formLanc(tipo,rec){const novo=!rec;const r=rec?{...rec}:{id:uid(),tipo,data:hoje(),status:'Pago',usuarioId:S.cfg.usuarioId,rateio:'[]',quantidade:'',valor:''};tipo=r.tipo;
+ const rt=rateio(r),rtMap={};rt.forEach(x=>rtMap[x.c]=x.p);
+ const cs=vivos('Centros').filter(c=>c.ativo!=='0'||rtMap[c.id]!=null).sort(byNome);
+ const us=vivos('Usuarios').filter(u=>u.ativo!=='0'||u.id===r.usuarioId).sort(byNome);
+ const usSel=`<select name="usuarioId"><option value="">— selecione —</option>${us.map(u=>opt(u.id,u.nome,r.usuarioId)).join('')}</select>`;
+ const comuns=`${fld('Situação',`<select name="status">${opt('Pago',tipo==='Receita'?'Recebido':'Pago',r.status)}${opt('Pendente',tipo==='Receita'?'A receber':'A pagar',r.status)}</select>`)}
+  ${fld('Vencimento',`<input type="date" name="vencimento" value="${esc(r.vencimento||'')}">`,'venc')}
+  ${fld(tipo==='Receita'?'Recebido por (usuário) *':'Pago por (usuário que desembolsou) *',usSel)}
+  ${fld(tipo==='Receita'?'Cliente / comprador':'Fornecedor',`<input name="pessoa" value="${esc(r.pessoa||'')}">`)}
+  ${fld('Forma de pagamento',`<select name="formaPgto">${['','PIX','Dinheiro','Transferência','Boleto','Cartão','Cheque','A prazo'].map(x=>opt(x,x||'—',r.formaPgto)).join('')}</select>`)}
+  ${fld('Nº nota / documento',`<input name="doc" value="${esc(r.doc||'')}">`)}`;
+ let h;
+ if(tipo==='Receita'){const c0=rt[0]?rt[0].c:'';
+  h=`<form id="fl"><div class="form">${fld('Data *',`<input type="date" name="data" value="${esc(r.data)}">`)}
+  ${fld('Centro de custo (cultura/atividade) *',`<select name="centro"><option value="">— selecione —</option>${cs.map(c=>opt(c.id,c.nome+(c.ciclo?' '+c.ciclo:''),c0)).join('')}</select>`,'wm')}
+  ${fld('Produto / descrição',`<input name="descricao" value="${esc(r.descricao||'')}" placeholder="Ex.: milho verde">`)}
+  ${fld('Quantidade vendida *',`<input name="quantidade" inputmode="decimal" value="${nStr(r.quantidade)}">`)}
+  ${fld('Unidade',`<input name="unidade" list="dlU" value="${esc(r.unidade||'')}"><datalist id="dlU">${UNIDADES.map(u=>`<option value="${u}">`).join('')}</datalist>`)}
+  ${fld('Preço por unidade (R$)',`<input name="precoUnit" inputmode="decimal" value="${nStr(r.precoUnit)}">`)}
+  ${fld('Valor total (R$) *',`<input name="valor" inputmode="decimal" value="${nStr(r.valor)}">`)}
+  ${comuns}${fld('Observação',`<input name="obs" value="${esc(r.obs||'')}">`,'w')}</div>`}
+ else{const cats=vivos('Categorias').filter(k=>k.ativo!=='0'||k.id===r.categoriaId).sort(byNome);
+  h=`<form id="fl"><div class="form">${fld('Data *',`<input type="date" name="data" value="${esc(r.data)}">`)}
+  ${fld('Centro de custo específico (categoria) *',`<select name="categoriaId"><option value="">— selecione —</option><optgroup label="Custo operacional efetivo (COE)">${cats.filter(k=>k.grupo!=='COT').map(k=>opt(k.id,k.nome,r.categoriaId)).join('')}</optgroup><optgroup label="Não desembolsável (entra no COT)">${cats.filter(k=>k.grupo==='COT').map(k=>opt(k.id,k.nome,r.categoriaId)).join('')}</optgroup></select>`,'wm')}
+  ${fld('Valor total (R$) *',`<input name="valor" inputmode="decimal" value="${nStr(r.valor)}">`)}
+  ${fld('Descrição',`<input name="descricao" value="${esc(r.descricao||'')}" placeholder="Ex.: 10 t de calcário dolomítico">`,'w')}
+  ${fld('Quantidade (opcional)',`<input name="quantidade" inputmode="decimal" value="${nStr(r.quantidade)}">`)}
+  ${fld('Unidade',`<input name="unidade" list="dlU" value="${esc(r.unidade||'')}"><datalist id="dlU">${UNIDADES.map(u=>`<option value="${u}">`).join('')}</datalist>`)}
+  <span></span>${comuns}
+  <div class="sec-t">Rateio entre centros de custo (culturas/atividades) *</div>
+  <div class="rt"><div class="toolbar" style="margin:0 0 6px"><button type="button" class="btn sec sm" id="rtIg">Dividir igualmente</button><button type="button" class="btn sec sm" id="rtAr">Proporcional à área</button><button type="button" class="btn sec sm" id="rtTd">Marcar todos</button><button type="button" class="btn sec sm" id="rtNd">Limpar</button></div>
+  ${cs.map(c=>`<div class="rtl"><input type="checkbox" data-c="${c.id}" ${rtMap[c.id]!=null?'checked':''}><span>${esc(c.nome)}${c.ciclo?' <small class="muted">'+esc(c.ciclo)+'</small>':''}${c.area?' <small style="color:#888">('+fN(c.area,1)+' ha)</small>':''}</span><input class="pc" data-p="${c.id}" inputmode="decimal" placeholder="%" value="${rtMap[c.id]!=null?nStr(Math.round(rtMap[c.id]*1e4)/1e4):''}"><span class="rv" data-v="${c.id}"></span></div>`).join('')||'<p class="help">Cadastre os centros de custo em Cadastros.</p>'}
+  <div class="rtt"><span>Total</span><span id="rtTot"></span></div></div>
+  ${fld('Observação',`<input name="obs" value="${esc(r.obs||'')}">`,'w')}</div>`}
+ h+=`<div class="fa">${!novo?'<button type="button" class="btn red" id="fDel">Excluir</button><span class="sp"></span>':''}<button type="button" class="btn sec" onclick="fecharModal()">Cancelar</button><button class="btn" type="submit">💾 Salvar</button></div></form>`;
+ abrirModal((novo?'Nova ':'Editar ')+(tipo==='Receita'?'receita (venda)':'despesa'),h);
+ const f=$('#fl'),E=n=>f.elements[n];
+ const vis=()=>{f.querySelector('.venc').classList.toggle('hide2',E('status').value!=='Pendente')};vis();E('status').onchange=vis;
+ if(!novo)$('#fDel').onclick=()=>{if(confirm('Excluir este lançamento? Ele será removido de todos os aparelhos.')){excluir('Lancamentos',r.id);fecharModal();render();toast('Lançamento excluído')}};
+ if(tipo==='Receita'){const upd=()=>{const q=num(E('quantidade').value),p=num(E('precoUnit').value);if(q!=null&&p!=null)E('valor').value=nStr(Math.round(q*p*100)/100)};
+  E('quantidade').oninput=upd;E('precoUnit').oninput=upd;E('valor').oninput=()=>{const q=num(E('quantidade').value),v=num(E('valor').value);if(q&&v!=null)E('precoUnit').value=nStr(Math.round(v/q*10000)/10000)};
+  E('centro').onchange=()=>{const c=S.T.Centros[E('centro').value];if(c&&c.unidade)E('unidade').value=c.unidade};if(novo&&!r.unidade)E('centro').onchange()}
+ else{let manual=rt.length>0;const cbs=[...f.querySelectorAll('[data-c]')],pc=id=>f.querySelector(`[data-p="${id}"]`);
+  const dist=pesos=>{const ids=cbs.filter(c=>c.checked).map(c=>c.dataset.c);cbs.forEach(c=>{if(!c.checked)pc(c.dataset.c).value=''});if(!ids.length)return mostra();
+   const w=ids.map(id=>pesos?pesos(id):1),tw=sum(w);if(!tw){alert('Os centros marcados não têm área cadastrada.');return}let acc=0;ids.forEach((id,i)=>{let p=i===ids.length-1?Math.round((100-acc)*1e4)/1e4:Math.round(w[i]/tw*1e6)/1e4;acc+=p;pc(id).value=nStr(p)});mostra()};
+  const mostra=()=>{const v=num(E('valor').value)||0;let t=0;cbs.forEach(c=>{const p=c.checked?(num(pc(c.dataset.c).value)||0):0;t+=p;f.querySelector(`[data-v="${c.dataset.c}"]`).textContent=c.checked?fR(v*p/100):''});
+   const el=$('#rtTot');el.textContent=fN(t,2)+'%  •  '+fR(v*t/100);el.className=Math.abs(t-100)<.01?'pos':'neg'};
+  f.querySelectorAll('.rtl>span:nth-child(2)').forEach(sp=>sp.onclick=()=>sp.parentNode.querySelector('[data-c]').click());
+  cbs.forEach(c=>c.onchange=()=>{if(!manual)dist();else{if(!c.checked)pc(c.dataset.c).value='';mostra()}});
+  f.querySelectorAll('.pc').forEach(i=>i.oninput=()=>{manual=true;const c=f.querySelector(`[data-c="${i.dataset.p}"]`);if(i.value&&!c.checked)c.checked=true;mostra()});
+  $('#rtIg').onclick=()=>{manual=false;dist()};$('#rtAr').onclick=()=>{manual=true;if(!cbs.some(c=>c.checked))cbs.forEach(c=>c.checked=(+S.T.Centros[c.dataset.c].area>0));dist(id=>+S.T.Centros[id].area||0)};
+  $('#rtTd').onclick=()=>{cbs.forEach(c=>c.checked=true);manual=false;dist()};$('#rtNd').onclick=()=>{cbs.forEach(c=>c.checked=false);manual=false;dist()};
+  E('valor').oninput=mostra;mostra()}
+ f.onsubmit=e=>{e.preventDefault();const er=[];const g=n=>E(n)?E(n).value.trim():'';
+  const o=Object.assign({},r,{data:g('data'),descricao:g('descricao'),quantidade:num(g('quantidade'))??'',unidade:g('unidade'),valor:num(g('valor')),status:g('status'),vencimento:g('status')==='Pendente'?g('vencimento'):'',usuarioId:g('usuarioId'),pessoa:g('pessoa'),formaPgto:g('formaPgto'),doc:g('doc'),obs:g('obs')});
+  if(!o.data)er.push('Informe a data.');if(!(o.valor>0))er.push('Informe o valor total.');if(!o.usuarioId)er.push('Informe o usuário.');
+  let rr=[];
+  if(tipo==='Receita'){const c=g('centro');if(!c)er.push('Escolha o centro de custo.');else rr=[{c,p:100}];o.precoUnit=num(g('precoUnit'))??'';if(!(o.quantidade>0))er.push('Informe a quantidade vendida (necessária para o lucro por unidade).');o.categoriaId='';o.categoria=''}
+  else{o.categoriaId=g('categoriaId');if(!o.categoriaId)er.push('Escolha a categoria (centro de custo específico).');o.categoria=S.T.Categorias[o.categoriaId]?.nome||'';o.precoUnit='';
+   f.querySelectorAll('[data-c]').forEach(c=>{if(c.checked){const p=num(f.querySelector(`[data-p="${c.dataset.c}"]`).value);if(p>0)rr.push({c:c.dataset.c,p})}});
+   const t=sum(rr.map(x=>x.p));if(!rr.length)er.push('Marque pelo menos um centro de custo no rateio.');else if(Math.abs(t-100)>.01)er.push('O rateio soma '+fN(t,2)+'% — deve somar 100%.')}
+  if(er.length)return alert(er.join('\n'));
+  o.rateio=JSON.stringify(rr);o.rateioTexto=rr.map(x=>(S.T.Centros[x.c]?.nome||'?')+' '+fN(x.p,2)+'%').join(' | ');o.usuario=S.T.Usuarios[o.usuarioId]?.nome||'';
+  gravar('Lancamentos',o);fecharModal();render();toast('Lançamento salvo'+(S.cfg.url?'':' (só neste aparelho)'))}}
+
+/* ============ TABELA GENÉRICA ============ */
+const VS={};
+function lista(el,key,rows,cols,o={}){const st=VS[key]=VS[key]||{q:'',s:null,d:1,pg:0};
+ el.innerHTML=`<div class="toolbar np"><input class="busca" placeholder="🔍 Buscar…" value="${esc(st.q)}" style="min-width:180px">${o.tb||''}<span class="sp"></span><button class="btn sec sm" data-csv>⬇ CSV (Excel)</button></div><div class="tw"></div>`;
+ const w=el.querySelector('.tw');let cur=[];const fmt=(v,c)=>v==null||v===''?'':c.t==='d'?fD(v):c.t==='$'?fR(v):c.t==='n'?fN(v,c.dc??2):String(v);
+ const draw=()=>{let r=rows;if(st.q){const q=st.q.toLowerCase();r=r.filter(x=>cols.some(c=>fmt(c.v(x),c).toLowerCase().includes(q)))}
+  if(st.s!=null){const c=cols[st.s];r=[...r].sort((a,b)=>{const A=c.v(a),B=c.v(b);if(A==null||A==='')return 1;if(B==null||B==='')return-1;return(A>B?1:A<B?-1:0)*st.d})}
+  cur=r;const ps=100,np=Math.max(1,Math.ceil(r.length/ps));if(st.pg>=np)st.pg=np-1;const pr=r.slice(st.pg*ps,st.pg*ps+ps);
+  if(cel()&&o.cartao){w.innerHTML=(pr.map(x=>`<div class="lc" data-id="${x.id}">${o.cartao(x)}</div>`).join('')||'<div class="empty">Nenhum registro.</div>')+`<div class="pager">${r.length} registro(s)${np>1?` <button data-pg="-1">‹</button> pág. ${st.pg+1}/${np} <button data-pg="1">›</button>`:''}</div>`;return}
+  w.innerHTML=`<table><thead><tr>${cols.map((c,i)=>`<th data-i="${i}" class="${c.t==='$'||c.t==='n'?'num':''}">${c.h}${st.s===i?(st.d>0?' ▲':' ▼'):''}</th>`).join('')}${o.acoes?'<th></th>':''}</tr></thead><tbody>${pr.map(x=>`<tr data-id="${x.id}">${cols.map(c=>`<td class="${c.t==='$'||c.t==='n'?'num':''}">${c.f?c.f(x):esc(fmt(c.v(x),c))}</td>`).join('')}${o.acoes?`<td class="act">${o.acoes(x)}</td>`:''}</tr>`).join('')||`<tr><td colspan="${cols.length+1}" class="empty">Nenhum registro.</td></tr>`}</tbody>${o.rodape?o.rodape(r):''}</table><div class="pager">${r.length} registro(s)${np>1?` <button data-pg="-1">‹</button> pág. ${st.pg+1}/${np} <button data-pg="1">›</button>`:''}</div>`};
+ draw();el.querySelector('.busca').oninput=e=>{st.q=e.target.value;st.pg=0;draw()};
+ el.querySelector('[data-csv]').onclick=()=>csv(key,[cols.map(c=>c.h),...cur.map(x=>cols.map(c=>{const v=c.v(x);return c.t==='$'||c.t==='n'?csvNum(v):fmt(v,c)}))]);
+ w.onclick=e=>{const th=e.target.closest('th[data-i]');if(th){const i=+th.dataset.i;if(st.s===i)st.d*=-1;else{st.s=i;st.d=1}draw();return}
+  const pb=e.target.closest('[data-pg]');if(pb){st.pg=Math.max(0,st.pg+ +pb.dataset.pg);draw();return}
+  const ab=e.target.closest('[data-a]');if(ab&&o.acao){o.acao(ab.dataset.a,ab.closest('[data-id]').dataset.id);return}
+  const lc=e.target.closest('.lc');if(lc&&o.acao)o.acao('ed',lc.dataset.id)}}
+
+/* ============ GRÁFICO ============ */
+function barras(labels,series,o={}){const W=820,H=o.h||260,pl=78,pb=36,pt=12,pr=10,iw=W-pl-pr,ih=H-pt-pb;const all=series.flatMap(s=>s.values.map(v=>v||0));
+ let mx=Math.max(0,...all),mn=Math.min(0,...all);if(mx===mn)mx=1;const pd=(mx-mn)*.08;mx+=pd;if(mn<0)mn-=pd;
+ const Y=v=>pt+ih-ih*(v-mn)/(mx-mn),n=Math.max(1,labels.length),gw=iw/n,bw=Math.max(3,Math.min(34,gw*.8/series.length));const fy=v=>Math.abs(v)>=1e6?fN(v/1e6,1)+' mi':Math.abs(v)>=1e3?fN(v/1e3,0)+' mil':fN(v);let g='';
+ for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4,y=Y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="#e6e9e2"/><text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="11" fill="#69756a">${fy(v)}</text>`}
+ if(mn<0)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="#999"/>`;
+ labels.forEach((l,i)=>{const x0=pl+gw*i+(gw-bw*series.length)/2;series.forEach((s,j)=>{const v=s.values[i]||0,y1=Y(Math.max(0,v)),y2=Y(Math.min(0,v));g+=`<rect x="${x0+j*bw}" y="${y1}" width="${bw-1}" height="${Math.max(0,y2-y1)}" fill="${s.cor}" rx="2"><title>${esc(s.nome)} — ${esc(l)}: ${fR(v)}</title></rect>`});
+  g+=`<text x="${pl+gw*i+gw/2}" y="${H-pb+16}" text-anchor="middle" font-size="11" fill="#69756a">${esc(String(l).slice(0,16))}</text>`});
+ const leg=series.length>1?`<div class="legend">${series.map(s=>`<span><i style="background:${s.cor}"></i>${esc(s.nome)}</span>`).join('')}</div>`:'';
+ const mxA=Math.max(1,...all.map(Math.abs));
+ const hc=labels.map((l,i)=>`<div class="bc"><div class="bc-t">${esc(l)}</div>${series.map(s=>{const v=s.values[i]||0;return`<div class="bc-l"><i style="width:${Math.abs(v)/mxA*100}%;background:${s.cor};${v<0?'opacity:.45':''}"></i><span class="${v<0?'neg':''}">${fR(v)}</span></div>`}).join('')}</div>`).join('');
+ return`<div class="chart so-pc"><svg viewBox="0 0 ${W} ${H}">${g}</svg>${leg}</div><div class="so-cel" style="margin-top:12px">${hc}${leg}</div>`}
+
+/* ============ CÁLCULOS ============ */
+function filtrarLanc(F){return vivos('Lancamentos').filter(l=>(!F.ini||l.data>=F.ini)&&(!F.fim||l.data<=F.fim))}
+function calcular(F){const L=filtrarLanc(F),sel=F.centros&&F.centros.length?new Set(F.centros):null;
+ const C={};vivos('Centros').sort(byNome).forEach(c=>{if(!sel||sel.has(c.id))C[c.id]={c,rb:0,q:0,coe:0,nd:0,cat:{},rbPend:0,coePend:0}});
+ const U={},semRateio=[];const uRow=id=>U[id]=U[id]||{des:0,pend:0,rec:0,recPend:0,centro:{},cat:{}};
+ for(const l of L){const rt=rateio(l);if(!rt.length){semRateio.push(l);continue}const k=S.T.Categorias[l.categoriaId],cot=k&&k.grupo==='COT';
+  for(const{c,p}of rt){const x=C[c];if(!x)continue;const v=(+l.valor||0)*p/100;
+   if(l.tipo==='Receita'){x.rb+=v;x.q+=(+l.quantidade||0)*p/100;if(l.status==='Pendente')x.rbPend+=v;const u=uRow(l.usuarioId||'?');if(l.status==='Pago')u.rec+=v;else u.recPend+=v}
+   else{if(cot)x.nd+=v;else x.coe+=v;x.cat[l.categoriaId]=(x.cat[l.categoriaId]||0)+v;if(l.status==='Pendente')x.coePend+=v;
+    if(!cot){const u=uRow(l.usuarioId||'?');if(l.status==='Pago'){u.des+=v;u.centro[c]=(u.centro[c]||0)+v;u.cat[l.categoriaId]=(u.cat[l.categoriaId]||0)+v}else u.pend+=v}}}}
+ Object.values(C).forEach(x=>{x.cot=x.coe+x.nd;x.mb=x.rb-x.coe;x.lucro=x.rb-x.cot;x.pm=x.q?x.rb/x.q:null;x.coeU=x.q?x.coe/x.q:null;x.cotU=x.q?x.cot/x.q:null;x.mbU=x.q?x.mb/x.q:null;x.lucroU=x.q?x.lucro/x.q:null;
+  x.mbP=x.rb?x.mb/x.rb*100:null;x.pe=x.pm?x.coe/x.pm:null;x.area=+x.c.area||0;x.coeHa=x.area?x.coe/x.area:null;x.mbHa=x.area?x.mb/x.area:null;x.prodHa=x.area&&x.q?x.q/x.area:null});
+ const T={rb:0,coe:0,nd:0,cot:0,mb:0,lucro:0};Object.values(C).forEach(x=>{for(const k in T)T[k]+=x[k]});T.mbP=T.rb?T.mb/T.rb*100:null;
+ const totDes=sum(Object.values(U).map(u=>u.des));
+ return{L,C,T,U,totDes,semRateio}}
+
+/* ============ NAVEGAÇÃO ============ */
+const ABAS=[['painel','📊','Painel','Painel'],['lanc','💵','Lançamentos','Lançar'],['rel','📑','Relatórios','Relatórios'],['usuarios','👥','Desembolso por usuário','Usuários'],['cad','🗂️','Cadastros','Cadastros'],['config','⚙️','Configuração','Config.']];
+let ABA='painel';try{ABA=localStorage.getItem('agro2d_aba')||'painel'}catch(e){}
+function ir(a,pop){if(!pop&&ABA==='painel'&&a!=='painel')history.pushState({aba:a},'');ABA=a;try{localStorage.setItem('agro2d_aba',a)}catch(e){}render();window.scrollTo(0,0)}
+function render(){$('#nav').innerHTML=ABAS.map(([k,ic,l,c])=>`<button class="${k===ABA?'on':''}" onclick="ir('${k}')" aria-label="${l}"><span class="ic">${ic}</span><span class="lo">${l}</span><span class="cu">${c}</span></button>`).join('');
+ $('#hSub').textContent=eu()?'Usuário: '+eu().nome:'Gestão de custos e resultados';let b='';
+ if(!S.cfg.configurado&&ABA!=='config')return boasVindas();
+ if(!eu()&&ABA!=='config')b+=`<div class="banner w">👤 Escolha quem está usando este aparelho em <a href="#" onclick="ir('config');return false">Configuração</a>.</div>`;
+ if(!S.cfg.url&&ABA!=='config')b+=`<div class="banner w">📴 Os dados estão <b>só neste aparelho</b>. Conecte à planilha do Google em <a href="#" onclick="ir('config');return false">Configuração</a> para compartilhar.</div>`;
+ $('#app').innerHTML=b+'<div id="v"></div>';V[ABA]($('#v'));statusSync()}
+function boasVindas(){$('#app').innerHTML=`<div class="panel" style="max-width:720px;margin:auto"><h2>Bem-vindo ao Agropecuária 2D 🌽🍉🐑</h2>
+ <p class="help">Lance receitas e despesas por cultura, faça rateio entre centros de custo e acompanhe <b>COE, margem bruta e lucro por unidade</b> e o <b>desembolso de cada sócio</b>. Os dados ficam no aparelho (funciona sem internet) e são compartilhados por uma <b>planilha do Google</b> quando há conexão.</p>
+ <div class="toolbar"><button class="btn big" onclick="ir('config')">🔗 Conectar à planilha</button><button class="btn sec big" onclick="cfgSet({configurado:true});ir('config')">📴 Usar só neste aparelho por enquanto</button></div>
+ <p class="help">Ainda não criou a planilha? Veja o passo a passo em <b>Configuração</b> ou no arquivo LEIA-ME.</p></div>`}
+
+/* ============ FILTRO DE PERÍODO ============ */
+const FP=(()=>{let f={ini:'',fim:'',centros:[]};try{f=Object.assign(f,JSON.parse(localStorage.getItem('agro2d_filtro')||'{}'))}catch(e){}return f})();
+let FAB=null;
+function filtroH(){const cs=vivos('Centros').sort(byNome);const ab=FAB==null?!cel():FAB;return`<details class="panel np filtro" id="fDet"${ab?' open':''}><summary>🔎 Filtro: ${FP.ini||FP.fim?(FP.ini?fD(FP.ini):'início')+' a '+(FP.fim?fD(FP.fim):'hoje'):'todo o período'} • ${FP.centros.length?FP.centros.length+' centro(s)':'todos os centros'}</summary><div class="toolbar" style="margin-bottom:6px">Período: <input type="date" id="fIni" value="${FP.ini}"> até <input type="date" id="fFim" value="${FP.fim}">
+ <button class="btn sec sm" data-r="tudo">Tudo</button><button class="btn sec sm" data-r="ano">Este ano</button><button class="btn sec sm" data-r="12m">Últimos 12 meses</button><button class="btn sec sm" data-r="ant">Ano anterior</button></div>
+ <div class="chips">${cs.map(c=>`<span class="chip ${!FP.centros.length||FP.centros.includes(c.id)?'on':''}" data-c="${c.id}">${esc(c.nome)}${c.ciclo?' '+esc(c.ciclo):''}</span>`).join('')}</div><div class="help" style="margin-top:4px">Toque nos centros para incluir/excluir do cálculo.</div></details>`}
+function filtroEv(re){const sv=()=>{try{localStorage.setItem('agro2d_filtro',JSON.stringify(FP))}catch(e){}re()};
+ $('#fDet').querySelector('summary').onclick=()=>{FAB=!$('#fDet').open};
+ $('#fIni').onchange=e=>{FP.ini=e.target.value;sv()};$('#fFim').onchange=e=>{FP.fim=e.target.value;sv()};
+ document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const t=hoje(),Y=+t.slice(0,4);({tudo:()=>{FP.ini='';FP.fim=''},ano:()=>{FP.ini=Y+'-01-01';FP.fim=Y+'-12-31'},'12m':()=>{FP.ini=addDias(t,-364);FP.fim=t},ant:()=>{FP.ini=(Y-1)+'-01-01';FP.fim=(Y-1)+'-12-31'}})[b.dataset.r]();sv()});
+ document.querySelectorAll('.chip[data-c]').forEach(ch=>ch.onclick=()=>{const all=vivos('Centros').map(c=>c.id);let s=FP.centros.length?FP.centros.slice():all.slice();const id=ch.dataset.c;s=s.includes(id)?s.filter(x=>x!==id):[...s,id];FP.centros=s.length===all.length||!s.length?[]:s;sv()})}
+
+/* ============ PAINEL ============ */
+function painel(el){const R=calcular(FP),t=hoje(),cs=Object.values(R.C);
+ const pend=vivos('Lancamentos').filter(l=>l.status==='Pendente').sort((a,b)=>(a.vencimento||a.data)<(b.vencimento||b.data)?-1:1);
+ const meu=eu()?R.U[eu().id]:null;
+ el.innerHTML=`<div class="toolbar np"><button class="btn big" onclick="formLanc('Despesa')">➖ Nova despesa</button><button class="btn big" style="background:#2c6aa8" onclick="formLanc('Receita')">➕ Nova receita (venda)</button></div>${filtroH()}
+ <div class="cards"><div class="card"><div class="l">Receita bruta</div><div class="x pos">${fR(R.T.rb)}</div></div><div class="card"><div class="l">COE (custo operacional efetivo)</div><div class="x neg">${fR(R.T.coe)}</div></div>
+ <div class="card"><div class="l">Margem bruta (RB − COE)</div><div class="x ${R.T.mb>=0?'pos':'neg'}">${fR(R.T.mb)}</div><div class="s">${fP(R.T.mbP)} da receita</div></div><div class="card"><div class="l">Lucro (RB − COT)</div><div class="x ${R.T.lucro>=0?'pos':'neg'}">${fR(R.T.lucro)}</div><div class="s">COT = COE + ${fR(R.T.nd)} não desemb.</div></div>
+ ${meu?`<div class="card"><div class="l">Meu desembolso (${esc(eu().nome)})</div><div class="x">${fR(meu.des)}</div><div class="s">${fP(R.totDes?meu.des/R.totDes*100:null)} do total</div></div>`:''}</div>
+ <div class="panel"><h3>Resultado por cultura / atividade</h3><div class="so-cel">${cs.map(x=>acord(esc(x.c.nome)+(x.c.ciclo?' <small>'+esc(x.c.ciclo)+'</small>':''),fR(x.mb),x.mb>=0?'pos':'neg',[['Receita bruta',fR(x.rb)],['COE',fR(x.coe)],['Margem bruta',fR(x.mb),1],['Qtd. vendida',x.q?fN(x.q,1)+' '+esc(x.c.unidade||''):'–'],['Preço médio',fRu(x.pm)],['COE por unidade',fRu(x.coeU)],['Lucro por unidade',fRu(x.lucroU),1]])).join('')}<div class="help">O valor ao lado do nome é a margem bruta. Toque para ver os detalhes.</div></div><div class="tw so-pc"><table><thead><tr><th>Centro</th><th class="num">Qtd. vendida</th><th class="num">Receita</th><th class="num">COE</th><th class="num">Margem bruta</th><th class="num">COE / unid.</th><th class="num">Preço médio</th><th class="num">Lucro / unid.</th></tr></thead><tbody>
+ ${cs.map(x=>`<tr><td><b>${esc(x.c.nome)}</b>${x.c.ciclo?' <small>'+esc(x.c.ciclo)+'</small>':''}</td><td class="num">${x.q?fN(x.q,1)+' '+esc(x.c.unidade||''):'–'}</td><td class="num">${fR(x.rb)}</td><td class="num">${fR(x.coe)}</td><td class="num ${x.mb>=0?'pos':'neg'}">${fR(x.mb)}</td><td class="num">${fRu(x.coeU)}</td><td class="num">${fRu(x.pm)}</td><td class="num ${x.lucroU>=0?'pos':'neg'}">${fRu(x.lucroU)}</td></tr>`).join('')}</tbody></table></div>
+ ${barras(cs.map(x=>x.c.nome),[{nome:'Receita bruta',cor:'#3f7f39',values:cs.map(x=>x.rb)},{nome:'COE',cor:'#c0533f',values:cs.map(x=>x.coe)},{nome:'Margem bruta',cor:'#2c6aa8',values:cs.map(x=>x.mb)}])}</div>
+ <div class="panel"><h3>Contas pendentes (todas as datas)</h3>${pend.length?`<div class="so-cel">${pend.slice(0,20).map(l=>`<div class="lc" onclick="formLanc('${l.tipo==='Receita'?'Receita':'Despesa'}',S.T.Lancamentos['${esc(l.id)}'])"><div class="lc-t"><span>${esc(l.descricao||l.categoria||'')}</span><span>${fR(l.valor)}</span></div><div class="lc-s"><span class="tag ${(l.vencimento||l.data)<t?'r':'y'}">${l.tipo==='Receita'?'a receber':'a pagar'} ${fD(l.vencimento||l.data)}</span> ${esc(l.usuario||'')}</div></div>`).join('')}</div><div class="tw so-pc"><table><tbody>${pend.slice(0,20).map(l=>`<tr><td><span class="tag ${(l.vencimento||l.data)<t?'r':'y'}">${l.tipo==='Receita'?'a receber':'a pagar'}</span></td><td>${fD(l.vencimento||l.data)}</td><td>${esc(l.descricao||l.categoria||'')}</td><td>${esc(l.usuario||'')}</td><td class="num">${fR(l.valor)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="help">Nenhuma conta pendente. ✔</p>'}</div>
+ ${R.semRateio.length?`<div class="banner e">⚠ ${R.semRateio.length} lançamento(s) sem centro de custo válido — edite-os em Lançamentos.</div>`:''}`;
+ filtroEv(()=>painel(el))}
+
+/* ============ LANÇAMENTOS ============ */
+function lanc(el){const st=VS.lf=VS.lf||{mes:'',tipo:'',centro:'',cat:'',user:'',status:''};
+ const rows=vivos('Lancamentos').filter(l=>(!st.mes||l.data.startsWith(st.mes))&&(!st.tipo||l.tipo===st.tipo)&&(!st.centro||rateio(l).some(x=>x.c===st.centro))&&(!st.cat||l.categoriaId===st.cat)&&(!st.user||l.usuarioId===st.user)&&(!st.status||l.status===st.status));
+ const meses=[...new Set(vivos('Lancamentos').map(l=>l.data.slice(0,7)))].sort().reverse(),sel=(id,v,os)=>`<select id="${id}">${os.map(o=>opt(o[0],o[1],v)).join('')}</select>`;
+ const rec=sum(rows.filter(l=>l.tipo==='Receita').map(l=>l.valor)),des=sum(rows.filter(l=>l.tipo==='Despesa').map(l=>l.valor));
+ el.innerHTML=`<h2>Lançamentos</h2><details class="panel np filtro" id="lDet"${(VS.lfAb==null?!cel():VS.lfAb)?' open':''}><summary>Filtros: ${Object.values(st).filter(Boolean).length||'nenhum'} ${Object.values(st).filter(Boolean).length?'ativo(s)':'ativo'}</summary><div class="toolbar" style="margin:0">${sel('lM',st.mes,[['','Todos os meses'],...meses.map(m=>[m,m.slice(5)+'/'+m.slice(0,4)])])}${sel('lT',st.tipo,[['','Receitas e despesas'],['Receita','Receitas'],['Despesa','Despesas']])}
+ ${sel('lC',st.centro,[['','Todos os centros'],...vivos('Centros').sort(byNome).map(c=>[c.id,c.nome+(c.ciclo?' '+c.ciclo:'')])])}${sel('lK',st.cat,[['','Todas as categorias'],...vivos('Categorias').sort(byNome).map(k=>[k.id,k.nome])])}
+ ${sel('lU',st.user,[['','Todos os usuários'],...vivos('Usuarios').sort(byNome).map(u=>[u.id,u.nome])])}${sel('lS',st.status,[['','Pagos e pendentes'],['Pago','Pagos/recebidos'],['Pendente','Pendentes']])}</div></details>
+ <div class="cards"><div class="card"><div class="l">Receitas (filtro)</div><div class="x pos">${fR(rec)}</div></div><div class="card"><div class="l">Despesas (filtro)</div><div class="x neg">${fR(des)}</div></div><div class="card"><div class="l">Saldo</div><div class="x ${rec-des>=0?'pos':'neg'}">${fR(rec-des)}</div></div></div><div id="lst"></div>`;
+ $('#lDet').querySelector('summary').onclick=()=>{VS.lfAb=!$('#lDet').open};
+ [['lM','mes'],['lT','tipo'],['lC','centro'],['lK','cat'],['lU','user'],['lS','status']].forEach(([i,k])=>$('#'+i).onchange=e=>{st[k]=e.target.value;lanc(el)});
+ if(!VS.lanc){VS.lanc={q:'',s:0,d:-1,pg:0}}
+ lista($('#lst'),'lanc',rows,[{h:'Data',v:l=>l.data,t:'d'},{h:'Tipo',v:l=>l.tipo,f:l=>`<span class="tag ${l.tipo==='Receita'?'g':'r'}">${l.tipo}</span>`},{h:'Categoria',v:l=>l.tipo==='Receita'?'Venda':(S.T.Categorias[l.categoriaId]?.nome||l.categoria)},{h:'Descrição',v:l=>l.descricao},
+  {h:'Centros (rateio)',v:l=>rateio(l).map(x=>(S.T.Centros[x.c]?.nome||'?')+(x.p<100?' '+fN(x.p,0)+'%':'')).join(', ')},{h:'Qtd.',v:l=>l.quantidade,t:'n',f:l=>l.quantidade?fN(l.quantidade,2)+' '+esc(l.unidade||''):''},
+  {h:'Valor',v:l=>+l.valor,t:'$',f:l=>`<span class="${l.tipo==='Receita'?'pos':'neg'}">${fR(l.valor)}</span>`},{h:'Usuário',v:l=>S.T.Usuarios[l.usuarioId]?.nome||l.usuario},
+  {h:'Situação',v:l=>l.status,f:l=>l.status==='Pendente'?`<span class="tag y">${l.tipo==='Receita'?'A receber':'A pagar'}${l.vencimento?' '+fD(l.vencimento):''}</span>`:`<span class="tag">${l.tipo==='Receita'?'Recebido':'Pago'}</span>`},
+  {h:'Sinc.',v:l=>S.pend[l.id]?'pendente':'ok',f:l=>S.pend[l.id]?'⏳':'✔'}],
+  {tb:`<button class="btn" onclick="formLanc('Despesa')">➖ Despesa</button><button class="btn" style="background:#2c6aa8" onclick="formLanc('Receita')">➕ Receita</button>`,
+   cartao:l=>`<div class="lc-t"><span>${esc(l.descricao||(l.tipo==='Receita'?'Venda':l.categoria)||'')}</span><span class="${l.tipo==='Receita'?'pos':'neg'}">${l.tipo==='Receita'?'+':'−'} ${fR(l.valor)}</span></div><div class="lc-s">${fD(l.data)} • ${l.tipo==='Receita'?'Venda':esc(S.T.Categorias[l.categoriaId]?.nome||l.categoria||'')}</div><div class="lc-s">${esc(rateio(l).map(x=>(S.T.Centros[x.c]?.nome||'?')+(x.p<100?' '+fN(x.p,0)+'%':'')).join(', '))} • 👤 ${esc(S.T.Usuarios[l.usuarioId]?.nome||l.usuario||'')}${S.pend[l.id]&&S.cfg.url?' • ⏳ a enviar':''}</div>${l.status==='Pendente'?`<div class="lc-a"><span class="tag y" style="align-self:center">${l.tipo==='Receita'?'A receber':'A pagar'}${l.vencimento?' '+fD(l.vencimento):''}</span><button class="btn sec sm" data-a="pg">✅ Marcar ${l.tipo==='Receita'?'recebido':'pago'}</button></div>`:''}`,
+   acoes:l=>(l.status==='Pendente'?'<button data-a="pg" title="Marcar como pago/recebido">✅</button>':'')+'<button data-a="ed" title="Editar">✏️</button>',
+   acao:(a,id)=>{const l=S.T.Lancamentos[id];if(a==='ed')formLanc(l.tipo,l);if(a==='pg'&&confirm('Marcar como '+(l.tipo==='Receita'?'recebido':'pago')+'?')){gravar('Lancamentos',Object.assign({},l,{status:'Pago'}));render()}}})}
+
+/* ============ RELATÓRIOS ============ */
+let CSVR=[];
+function rel(el){const R=calcular(FP),cs=Object.values(R.C);CSVR=[];
+ const linhas=[['Quantidade vendida',x=>x.q?fN(x.q,2)+' '+esc(x.c.unidade||''):'–',x=>x.q,null],['Área (ha)',x=>x.area?fN(x.area,2):'–',x=>x.area,null],['Produtividade (unid./ha)',x=>fN(x.prodHa,2),x=>x.prodHa,null],
+  ['Preço médio de venda (R$/unid.)',x=>fRu(x.pm),x=>x.pm,null],['<b>Receita bruta (RB)</b>',x=>fR(x.rb),x=>x.rb,'rb',1],['<b>COE — custo operacional efetivo</b>',x=>fR(x.coe),x=>x.coe,'coe',1],
+  ['Custos não desembolsáveis (depreciação, pró-labore)',x=>fR(x.nd),x=>x.nd,'nd'],['COT — custo operacional total',x=>fR(x.cot),x=>x.cot,'cot'],
+  ['<b>Margem bruta (RB − COE)</b>',x=>`<span class="${x.mb>=0?'pos':'neg'}">${fR(x.mb)}</span>`,x=>x.mb,'mb',1],['Margem bruta / RB',x=>fP(x.mbP),x=>x.mbP,null],['<b>Lucro (RB − COT)</b>',x=>`<span class="${x.lucro>=0?'pos':'neg'}">${fR(x.lucro)}</span>`,x=>x.lucro,'lucro',1],
+  ['COE por unidade vendida',x=>fRu(x.coeU),x=>x.coeU,null],['COT por unidade vendida',x=>fRu(x.cotU),x=>x.cotU,null],['<b>Margem bruta por unidade</b>',x=>`<span class="${x.mbU>=0?'pos':'neg'}">${fRu(x.mbU)}</span>`,x=>x.mbU,null,1],
+  ['<b>Lucro por unidade vendida</b>',x=>`<span class="${x.lucroU>=0?'pos':'neg'}">${fRu(x.lucroU)}</span>`,x=>x.lucroU,null,1],['Ponto de equilíbrio (unid. para pagar o COE)',x=>x.pe!=null?fN(x.pe,1)+' '+esc(x.c.unidade||''):'–',x=>x.pe,null],
+  ['COE por hectare',x=>fR(x.coeHa),x=>x.coeHa,null],['Margem bruta por hectare',x=>fR(x.mbHa),x=>x.mbHa,null]];
+ linhas.forEach(([n,,v,tk])=>CSVR.push(['Resultado',n.replace(/<[^>]+>/g,''),...cs.map(x=>csvNum(v(x))),tk?csvNum(R.T[tk]):'']));
+ const cats=vivos('Categorias').sort((a,b)=>(a.grupo==='COT')-(b.grupo==='COT')||byNome(a,b)).filter(k=>cs.some(x=>x.cat[k.id]));
+ cats.forEach(k=>CSVR.push(['Custos por categoria',k.nome,...cs.map(x=>csvNum(x.cat[k.id]||0)),csvNum(sum(cs.map(x=>x.cat[k.id]||0)))]));
+ const per=FP.ini||FP.fim?`${FP.ini?fD(FP.ini):'início'} a ${FP.fim?fD(FP.fim):'hoje'}`:'todo o período';
+ el.innerHTML=`${filtroH()}<div class="toolbar np"><h2 style="margin:0">Relatórios</h2><span class="sp"></span><button class="btn" onclick="window.print()">🖨 Imprimir / PDF</button><button class="btn sec" id="rCsv">⬇ CSV (Excel)</button></div>
+ <div class="ph"><h2 style="margin:0">Agropecuária 2D — Relatório de resultados</h2><div class="help">Período: ${per} — emitido em ${new Date().toLocaleString('pt-BR')}</div></div>
+ <div class="cards"><div class="card"><div class="l">Receita bruta</div><div class="x pos">${fR(R.T.rb)}</div></div><div class="card"><div class="l">COE</div><div class="x neg">${fR(R.T.coe)}</div></div><div class="card"><div class="l">Margem bruta</div><div class="x ${R.T.mb>=0?'pos':'neg'}">${fR(R.T.mb)}</div><div class="s">${fP(R.T.mbP)}</div></div><div class="card"><div class="l">COT</div><div class="x">${fR(R.T.cot)}</div></div><div class="card"><div class="l">Lucro</div><div class="x ${R.T.lucro>=0?'pos':'neg'}">${fR(R.T.lucro)}</div></div></div>
+ <div class="panel"><h3>1. Resultado por centro de custo (${per})</h3><div class="so-cel">${acord('Total geral',fR(R.T.lucro),R.T.lucro>=0?'pos':'neg',linhas.filter(l=>l[3]).map(([n,,,tk,d])=>[n,fR(R.T[tk]),d]),true)}${cs.map(x=>acord(esc(x.c.nome)+(x.c.ciclo?' <small>'+esc(x.c.ciclo)+'</small>':''),fR(x.lucro),x.lucro>=0?'pos':'neg',linhas.map(([n,f,,,d])=>[n,f(x),d]))).join('')}<div class="help">O valor ao lado do nome é o lucro. Toque para ver todos os indicadores.</div></div><div class="tw so-pc"><table class="res"><thead><tr><th>Indicador</th>${cs.map(x=>`<th class="num">${esc(x.c.nome)}${x.c.ciclo?'<br><small>'+esc(x.c.ciclo)+'</small>':''}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
+ ${linhas.map(([n,f,,tk,d])=>`<tr class="${d?'dest':''}"><td>${n}</td>${cs.map(x=>`<td class="num">${f(x)}</td>`).join('')}<td class="num">${tk?fR(R.T[tk]):''}</td></tr>`).join('')}</tbody></table></div>
+ <p class="help">COE = despesas de custeio efetivamente desembolsadas (insumos, operações, mão de obra contratada, etc.). COT = COE + custos não desembolsáveis. Margem bruta = RB − COE. Lucro por unidade = (RB − COT) ÷ quantidade vendida. Despesas rateadas entram em cada centro pela porcentagem informada.</p></div>
+ <div class="panel"><h3>2. Receita × COE × margem bruta</h3>${barras(cs.map(x=>x.c.nome),[{nome:'Receita bruta',cor:'#3f7f39',values:cs.map(x=>x.rb)},{nome:'COE',cor:'#c0533f',values:cs.map(x=>x.coe)},{nome:'Margem bruta',cor:'#2c6aa8',values:cs.map(x=>x.mb)}])}</div>
+ <div class="panel"><h3>3. Custos por categoria (centro de custo específico) e cultura</h3><div class="so-cel">${cats.map(k=>{const t=sum(cs.map(x=>x.cat[k.id]||0));return acord(esc(k.nome),fR(t),'',[['% do custo total',fP(R.T.cot?t/R.T.cot*100:null)],...cs.filter(x=>x.cat[k.id]).map(x=>[esc(x.c.nome),fR(x.cat[k.id])])])}).join('')||'<div class="empty">Sem despesas no período.</div>'}</div><div class="tw so-pc"><table class="res"><thead><tr><th>Categoria</th>${cs.map(x=>`<th class="num">${esc(x.c.nome)}</th>`).join('')}<th class="num">Total</th><th class="num">% do custo</th></tr></thead><tbody>
+ ${cats.map(k=>{const t=sum(cs.map(x=>x.cat[k.id]||0));return`<tr><td>${esc(k.nome)}${k.grupo==='COT'?' <span class="tag">não desemb.</span>':''}</td>${cs.map(x=>`<td class="num">${x.cat[k.id]?fR(x.cat[k.id]):'–'}</td>`).join('')}<td class="num"><b>${fR(t)}</b></td><td class="num">${fP(R.T.cot?t/R.T.cot*100:null)}</td></tr>`}).join('')||`<tr><td colspan="${cs.length+3}" class="empty">Sem despesas no período.</td></tr>`}
+ <tr class="dest"><td>Total</td>${cs.map(x=>`<td class="num">${fR(x.cot)}</td>`).join('')}<td class="num">${fR(R.T.cot)}</td><td></td></tr></tbody></table></div></div>
+ ${R.semRateio.length?`<div class="banner e">⚠ ${R.semRateio.length} lançamento(s) sem centro de custo não entraram nos cálculos.</div>`:''}`;
+ $('#rCsv').onclick=()=>csv('relatorio_resultados',[['Seção','Indicador',...cs.map(x=>x.c.nome),'Total'],...CSVR]);filtroEv(()=>rel(el))}
+
+/* ============ DESEMBOLSO POR USUÁRIO ============ */
+function usuarios(el){const R=calcular(FP),cs=Object.values(R.C);const us=[...vivos('Usuarios').sort(byNome).map(u=>({id:u.id,nome:u.nome})),...(R.U['?']?[{id:'?',nome:'(sem usuário)'}]:[])].filter(u=>R.U[u.id]);
+ const tot={des:0,pend:0,rec:0,recPend:0};us.forEach(u=>{for(const k in tot)tot[k]+=R.U[u.id][k]});
+ const cats=vivos('Categorias').sort(byNome).filter(k=>us.some(u=>R.U[u.id].cat[k.id]));
+ el.innerHTML=`${filtroH()}<div class="toolbar np"><h2 style="margin:0">Desembolso por usuário</h2><span class="sp"></span><button class="btn" onclick="window.print()">🖨 Imprimir / PDF</button><button class="btn sec" id="uCsv">⬇ CSV (Excel)</button></div>
+ <div class="ph"><h2 style="margin:0">Agropecuária 2D — Desembolso por usuário</h2><div class="help">Emitido em ${new Date().toLocaleString('pt-BR')}</div></div>
+ <div class="panel"><h3>Quanto cada usuário desembolsou no projeto</h3><div class="so-cel">${us.map(u=>{const x=R.U[u.id];return acord(esc(u.nome),fR(x.des),'',[['% do total',fP(R.totDes?x.des/R.totDes*100:null)],['A pagar (pendente)',fR(x.pend)],['Receitas recebidas',fR(x.rec)],['Saldo (desemb. − receb.)',fR(x.des-x.rec),1]],true)}).join('')}${us.length?`<div class="ln dest"><span>Total desembolsado</span><span>${fR(tot.des)}</span></div>`:'<div class="empty">Sem lançamentos no período.</div>'}</div><div class="tw so-pc"><table><thead><tr><th>Usuário</th><th class="num">Desembolsado (pago)</th><th class="num">% do total</th><th class="num">A pagar (pendente)</th><th class="num">Receitas recebidas</th><th class="num">Saldo (desembolsado − recebido)</th></tr></thead><tbody>
+ ${us.map(u=>{const x=R.U[u.id];return`<tr><td><b>${esc(u.nome)}</b></td><td class="num">${fR(x.des)}</td><td class="num">${fP(R.totDes?x.des/R.totDes*100:null)}</td><td class="num">${fR(x.pend)}</td><td class="num">${fR(x.rec)}</td><td class="num ${x.des-x.rec>=0?'':'neg'}">${fR(x.des-x.rec)}</td></tr>`}).join('')||'<tr><td colspan=6 class="empty">Sem lançamentos no período.</td></tr>'}
+ <tr class="dest"><td><b>Total</b></td><td class="num"><b>${fR(tot.des)}</b></td><td class="num">100%</td><td class="num">${fR(tot.pend)}</td><td class="num">${fR(tot.rec)}</td><td class="num">${fR(tot.des-tot.rec)}</td></tr></tbody></table></div>
+ ${us.length?barras(us.map(u=>u.nome),[{nome:'Desembolsado',cor:'#c0533f',values:us.map(u=>R.U[u.id].des)},{nome:'Recebido',cor:'#3f7f39',values:us.map(u=>R.U[u.id].rec)}]):''}
+ <p class="help">Considera só despesas de custeio (COE) <b>pagas</b>, pelo campo "Pago por". "Saldo" positivo = o usuário colocou mais dinheiro do que recebeu das vendas. Despesas não desembolsáveis (depreciação, pró-labore) não entram.</p></div>
+ <div class="panel"><h3>Desembolso por usuário e cultura</h3><div class="so-cel">${us.map(u=>acord(esc(u.nome),fR(R.U[u.id].des),'',cs.filter(x=>R.U[u.id].centro[x.c.id]).map(x=>[esc(x.c.nome),fR(R.U[u.id].centro[x.c.id])]))).join('')}</div><div class="tw so-pc"><table class="res"><thead><tr><th>Usuário</th>${cs.map(x=>`<th class="num">${esc(x.c.nome)}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>${us.map(u=>`<tr><td>${esc(u.nome)}</td>${cs.map(x=>`<td class="num">${R.U[u.id].centro[x.c.id]?fR(R.U[u.id].centro[x.c.id]):'–'}</td>`).join('')}<td class="num"><b>${fR(R.U[u.id].des)}</b></td></tr>`).join('')}</tbody></table></div></div>
+ <div class="panel"><h3>Desembolso por usuário e categoria</h3><div class="so-cel">${cats.map(k=>acord(esc(k.nome),fR(sum(us.map(u=>R.U[u.id].cat[k.id]||0))),'',us.filter(u=>R.U[u.id].cat[k.id]).map(u=>[esc(u.nome),fR(R.U[u.id].cat[k.id])]))).join('')}</div><div class="tw so-pc"><table class="res"><thead><tr><th>Categoria</th>${us.map(u=>`<th class="num">${esc(u.nome)}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>${cats.map(k=>`<tr><td>${esc(k.nome)}</td>${us.map(u=>`<td class="num">${R.U[u.id].cat[k.id]?fR(R.U[u.id].cat[k.id]):'–'}</td>`).join('')}<td class="num"><b>${fR(sum(us.map(u=>R.U[u.id].cat[k.id]||0)))}</b></td></tr>`).join('')}</tbody></table></div></div>`;
+ $('#uCsv').onclick=()=>csv('desembolso_usuarios',[['Usuário','Desembolsado','% do total','A pagar','Recebido','Saldo',...cs.map(x=>x.c.nome)],...us.map(u=>{const x=R.U[u.id];return[u.nome,csvNum(x.des),csvNum(R.totDes?x.des/R.totDes*100:''),csvNum(x.pend),csvNum(x.rec),csvNum(x.des-x.rec),...cs.map(c=>csvNum(x.centro[c.c.id]||0))]})]);
+ filtroEv(()=>usuarios(el))}
+
+/* ============ CADASTROS ============ */
+function cad(el){el.innerHTML=`<h2>Cadastros</h2><div class="panel"><h3>Centros de custo — culturas / atividades</h3><p class="help">Ex.: Milho, Melancia, Feijão, Ovinos, Silagem. Para separar safras, crie um centro por ciclo (ex.: "Milho" ciclo "2026/27"). A área permite rateio proporcional e indicadores por hectare.</p><div id="cC"></div></div>
+ <div class="panel"><h3>Centros de custo específicos — categorias de despesa</h3><p class="help">Ex.: Corretivos, Fertilizantes, Sementes. Grupo <b>COE</b> = desembolso de custeio; grupo <b>COT</b> = custo não desembolsável (depreciação, pró-labore), que entra só no lucro.</p><div id="cK"></div></div>
+ <div class="panel"><h3>Usuários / sócios</h3><div id="cU"></div></div>`;
+ const at=r=>r.ativo==='0'?'<span class="tag">inativo</span>':'<span class="tag g">ativo</span>',usado=(campo,id)=>vivos('Lancamentos').some(l=>campo==='c'?rateio(l).some(x=>x.c===id):l[campo]===id);
+ const del=(tab,campo)=>(a,id)=>{if(a==='ed')formCad(tab,S.T[tab][id]);if(a==='del'){if(usado(campo,id))return alert('Este cadastro é usado em lançamentos. Edite-o e marque como inativo.');if(confirm('Excluir?')){excluir(tab,id);render()}}};
+ const ac=()=>'<button data-a="ed">✏️</button><button data-a="del">🗑️</button>';
+ const ct=sub=>r=>`<div class="lc-t"><span>${esc(r.nome)}</span><span>${r.ativo==='0'?'<span class="tag">inativo</span>':''}</span></div>${sub(r)?`<div class="lc-s">${sub(r)}</div>`:''}<div class="lc-a"><button class="btn sec sm" data-a="ed">✏️ Editar</button><button class="btn sec sm" data-a="del">🗑️ Excluir</button></div>`;
+ lista($('#cC'),'centros',vivos('Centros').sort(byNome),[{h:'Nome',v:c=>c.nome},{h:'Ciclo / safra',v:c=>c.ciclo},{h:'Unidade de venda',v:c=>c.unidade},{h:'Área (ha)',v:c=>c.area,t:'n'},{h:'Situação',v:c=>c.ativo,f:at}],{tb:`<button class="btn" onclick="formCad('Centros')">➕ Novo centro</button>`,cartao:ct(c=>[c.ciclo&&esc(c.ciclo),c.unidade&&esc(c.unidade),c.area&&fN(c.area,1)+' ha'].filter(Boolean).join(' • ')),acoes:ac,acao:del('Centros','c')});
+ lista($('#cK'),'cats',vivos('Categorias').sort(byNome),[{h:'Nome',v:k=>k.nome},{h:'Grupo',v:k=>k.grupo,f:k=>k.grupo==='COT'?'<span class="tag y">COT (não desembolsável)</span>':'<span class="tag g">COE</span>'},{h:'Situação',v:k=>k.ativo,f:at}],{tb:`<button class="btn" onclick="formCad('Categorias')">➕ Nova categoria</button>`,cartao:ct(k=>k.grupo==='COT'?'COT — não desembolsável':'COE'),acoes:ac,acao:del('Categorias','categoriaId')});
+ lista($('#cU'),'users',vivos('Usuarios').sort(byNome),[{h:'Nome',v:u=>u.nome},{h:'Situação',v:u=>u.ativo,f:at},{h:'Este aparelho',v:u=>u.id===S.cfg.usuarioId?'sim':'',f:u=>u.id===S.cfg.usuarioId?'📱 sim':''}],{tb:`<button class="btn" onclick="formCad('Usuarios')">➕ Novo usuário</button>`,cartao:ct(u=>u.id===S.cfg.usuarioId?'Usa este aparelho':''),acoes:ac,acao:del('Usuarios','usuarioId')})}
+function formCad(tab,rec){const novo=!rec,r=rec?{...rec}:{id:uid(),ativo:'1',grupo:'COE'};let h='<form id="fc"><div class="form">';
+ h+=fld('Nome *',`<input name="nome" value="${esc(r.nome||'')}">`,tab==='Usuarios'?'w':'');
+ if(tab==='Centros')h+=fld('Ciclo / safra',`<input name="ciclo" value="${esc(r.ciclo||'')}" placeholder="Ex.: 2026/27">`)+fld('Unidade de venda',`<input name="unidade" list="dlU2" value="${esc(r.unidade||'')}"><datalist id="dlU2">${UNIDADES.map(u=>`<option value="${u}">`).join('')}</datalist>`)+fld('Área (ha)',`<input name="area" inputmode="decimal" value="${nStr(r.area)}">`)+fld('Observação',`<input name="obs" value="${esc(r.obs||'')}">`,'w');
+ if(tab==='Categorias')h+=fld('Grupo',`<select name="grupo">${opt('COE','COE — desembolso de custeio',r.grupo)}${opt('COT','COT — não desembolsável',r.grupo)}</select>`);
+ h+=fld('Situação',`<select name="ativo">${opt('1','Ativo',r.ativo)}${opt('0','Inativo (oculto nos lançamentos)',r.ativo)}</select>`);
+ h+=`</div><div class="fa"><button type="button" class="btn sec" onclick="fecharModal()">Cancelar</button><button class="btn">💾 Salvar</button></div></form>`;
+ abrirModal((novo?'Novo: ':'Editar: ')+{Centros:'centro de custo',Categorias:'categoria',Usuarios:'usuário'}[tab],h);
+ $('#fc').onsubmit=e=>{e.preventDefault();const f=e.target;['nome','ciclo','unidade','obs','grupo','ativo'].forEach(k=>{if(f.elements[k])r[k]=f.elements[k].value.trim()});if(f.elements.area)r.area=num(f.elements.area.value)??'';
+  if(!r.nome)return alert('Informe o nome.');if(vivos(tab).some(x=>x.id!==r.id&&x.nome.toLowerCase()===r.nome.toLowerCase()&&(x.ciclo||'')===(r.ciclo||'')))return alert('Já existe um cadastro com esse nome.');
+  gravar(tab,r);if(tab==='Usuarios'&&!S.cfg.usuarioId)cfgSet({usuarioId:r.id});fecharModal();render();toast('Salvo')}}
+
+/* ============ CONFIGURAÇÃO ============ */
+function config(el){const np=Object.keys(S.pend).length,us=ativos('Usuarios');
+ el.innerHTML=`<h2>Configuração</h2><div class="grid2"><div class="panel"><h3>🔗 Conexão com a planilha do Google</h3>
+ <div class="form" style="grid-template-columns:1fr">${fld('Endereço do app da Web (termina em /exec)',`<input id="cUrl" inputmode="url" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" value="${esc(S.cfg.url)}" placeholder="https://script.google.com/macros/s/.../exec">`)}${fld('Chave de acesso (a mesma do Code.gs)',`<input id="cKey" type="password" value="${esc(S.cfg.chave)}">`)}</div>
+ <div class="toolbar" style="margin-top:10px"><button class="btn" id="cSave">Testar e conectar</button>${S.cfg.url?'<button class="btn sec" id="cOff">Desconectar</button>':''}</div>
+ <table><tbody><tr><td>Situação</td><td>${S.cfg.url?(erroSync?'<span class="neg">⚠ '+esc(erroSync)+'</span>':'<span class="pos">conectado</span>'):'só neste aparelho'}</td></tr><tr><td>Última sincronização</td><td>${S.cfg.ultimaSync?new Date(S.cfg.ultimaSync).toLocaleString('pt-BR'):'–'}</td></tr><tr><td>Alterações aguardando envio</td><td>${np}</td></tr><tr><td>Internet</td><td>${navigator.onLine?'disponível':'sem conexão'}</td></tr></tbody></table>
+ <div class="toolbar" style="margin-top:10px"><button class="btn sec" onclick="sincronizar(true)">🔄 Sincronizar agora</button><button class="btn sec" id="cFull">⬇ Baixar tudo da planilha de novo</button></div></div>
+ <div class="panel"><h3>👤 Quem usa este aparelho</h3><p class="help">Usado como padrão no campo "Pago por" e para registrar o autor dos lançamentos.</p>
+ <div class="toolbar"><select id="cUser"><option value="">— selecione —</option>${us.map(u=>opt(u.id,u.nome,S.cfg.usuarioId)).join('')}</select><button class="btn sec" onclick="formCad('Usuarios')">➕ Cadastrar novo usuário</button></div>
+ <h3 style="margin-top:16px">💾 Cópia de segurança</h3><p class="help">A planilha do Google já é a cópia central. Mesmo assim, você pode baixar um arquivo com tudo deste aparelho.</p>
+ <div class="toolbar"><button class="btn sec" id="cBk">⬇ Baixar backup (JSON)</button><button class="btn sec" id="cCsv">⬇ Todos os lançamentos (CSV)</button></div></div></div>
+ <div class="panel"><h3>📋 Como criar a planilha (uma única vez)</h3><ol class="help">
+ <li>No Google Drive, crie uma <b>Planilha Google</b> nova (ex.: "Agropecuária 2D — dados").</li>
+ <li>Menu <b>Extensões › Apps Script</b>. Apague o conteúdo e cole todo o arquivo <b>Code.gs</b> que acompanha este app.</li>
+ <li>Na linha <code>const CHAVE = 'TROQUE-ESTA-CHAVE';</code> coloque uma senha sua (ex.: <code>milho-2d-8472</code>). Salve (💾).</li>
+ <li>No topo, escolha a função <b>configurar</b> e clique em <b>Executar</b>. Autorize com sua conta Google (em "app não verificado" clique em <i>Avançado › Acessar</i>).</li>
+ <li><b>Implantar › Nova implantação</b> › tipo <b>App da Web</b>. Executar como: <b>Eu</b>. Quem pode acessar: <b>Qualquer pessoa</b>. Clique em Implantar e copie o <b>URL do app da Web</b>.</li>
+ <li>Em cada aparelho, cole o URL e a chave acima e toque em <b>Testar e conectar</b>.</li></ol>
+ <p class="help">⚠ Guarde o endereço e a chave como uma senha: quem tiver os dois consegue lançar dados. Não apague nem renomeie as colunas da planilha. Para corrigir algo direto na planilha, altere só textos e valores simples (data, descrição, valor).</p></div>`;
+ $('#cSave').onclick=async()=>{const url=$('#cUrl').value.trim(),ch=$('#cKey').value.trim();if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(url))return alert('Endereço inválido. Ele deve começar com https://script.google.com/');if(!ch)return alert('Informe a chave.');
+  const b=$('#cSave');b.disabled=true;b.textContent='Testando…';try{const j=await chamar({acao:'ping'},url,ch);if(S.cfg.url!==url)zerarCursor();cfgSet({url,chave:ch,configurado:true});erroSync='';toast('Conectado à planilha "'+j.planilha+'"');await sincronizar();render()}catch(e){alert('Não foi possível conectar:\n'+e.message)}finally{b.disabled=false;b.textContent='Testar e conectar'}};
+ if($('#cOff'))$('#cOff').onclick=()=>{if(confirm('Desconectar este aparelho da planilha? Os dados locais continuam aqui.')){cfgSet({url:''});render()}};
+ $('#cFull').onclick=async()=>{if(!S.cfg.url)return alert('Conecte primeiro.');zerarCursor();await sincronizar(true);render()};
+ $('#cUser').onchange=e=>{cfgSet({usuarioId:e.target.value,configurado:true});render()};
+ $('#cBk').onclick=()=>baixar(new Blob([JSON.stringify({T:S.T,exportadoEm:new Date().toISOString()},null,1)],{type:'application/json'}),'agropecuaria2d_backup_'+hoje()+'.json');
+ $('#cCsv').onclick=()=>csv('lancamentos',[['Data','Tipo','Categoria','Descrição','Rateio','Quantidade','Unidade','Preço unit.','Valor','Situação','Vencimento','Usuário','Fornecedor/cliente','Forma pgto','Doc','Obs'],...vivos('Lancamentos').sort((a,b)=>a.data<b.data?-1:1).map(l=>[fD(l.data),l.tipo,l.categoria,l.descricao,l.rateioTexto,csvNum(l.quantidade),l.unidade,csvNum(l.precoUnit),csvNum(l.valor),l.status,fD(l.vencimento),l.usuario,l.pessoa,l.formaPgto,l.doc,l.obs])])}
+
+/* ============ INÍCIO ============ */
+const V={painel,lanc,rel,usuarios,cad,config};
+(async()=>{await carregar();if(!V[ABA]||cel())ABA='painel';render();statusSync();agendarSync(500);
+ if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{})})();
+</script>
+</body>
+</html>
