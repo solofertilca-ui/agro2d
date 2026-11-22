@@ -35,7 +35,7 @@ h3{margin:0 0 10px;font-size:15px;color:var(--v)}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .sp{flex:1}
 .btn{background:var(--v);color:#fff;border:0;border-radius:7px;padding:9px 14px;font-size:14px;cursor:pointer}
-.btn:hover{background:var(--v2)}.btn.sec{background:#fff;color:var(--v);border:1px solid var(--v)}.btn.red{background:var(--r)}.btn.sm{padding:5px 9px;font-size:12px}
+.btn:hover{background:var(--v2)}.btn.sec{background:#fff;color:var(--v);border:1px solid var(--v)}.btn.red,.btn.red:hover{background:var(--r)}.btn.sm{padding:5px 9px;font-size:12px}
 .btn.big{padding:14px 18px;font-size:16px;flex:1;min-width:150px}
 input,select,textarea{font:inherit;padding:8px;border:1px solid #c8cfc3;border-radius:7px;background:#fff;color:var(--t);width:100%}
 .toolbar input,.toolbar select{width:auto}
@@ -342,6 +342,8 @@ function barras(labels,series,o={}){const W=820,H=o.h||260,pl=78,pb=36,pt=12,pr=
  return`<div class="chart so-pc"><svg viewBox="0 0 ${W} ${H}">${g}</svg>${leg}</div><div class="so-cel" style="margin-top:12px">${hc}${leg}</div>`}
 
 /* ============ CÁLCULOS ============ */
+// centros que aparecem em filtros e relatórios: ativos, ou inativos que tenham algum lançamento
+function centrosVis(){const us=new Set();vivos('Lancamentos').forEach(l=>rateio(l).forEach(x=>us.add(x.c)));return vivos('Centros').filter(c=>c.ativo!=='0'||us.has(c.id)).sort(byNome)}
 function filtrarLanc(F){return vivos('Lancamentos').filter(l=>(!F.ini||l.data>=F.ini)&&(!F.fim||l.data<=F.fim))}
 function calcular(F){const L=filtrarLanc(F),sel=F.centros&&F.centros.length?new Set(F.centros):null;
  const C={};vivos('Centros').sort(byNome).forEach(c=>{if(!sel||sel.has(c.id))C[c.id]={c,rb:0,q:0,coe:0,nd:0,cat:{},rbPend:0,coePend:0}});
@@ -353,6 +355,7 @@ function calcular(F){const L=filtrarLanc(F),sel=F.centros&&F.centros.length?new 
     if(!cot){const u=uRow(l.usuarioId||'?');if(l.status==='Pago'){u.des+=v;u.centro[c]=(u.centro[c]||0)+v;u.cat[l.categoriaId]=(u.cat[l.categoriaId]||0)+v}else u.pend+=v}}}}
  Object.values(C).forEach(x=>{x.cot=x.coe+x.nd;x.mb=x.rb-x.coe;x.lucro=x.rb-x.cot;x.pm=x.q?x.rb/x.q:null;x.coeU=x.q?x.coe/x.q:null;x.cotU=x.q?x.cot/x.q:null;x.mbU=x.q?x.mb/x.q:null;x.lucroU=x.q?x.lucro/x.q:null;
   x.mbP=x.rb?x.mb/x.rb*100:null;x.pe=x.pm?x.coe/x.pm:null;x.area=+x.c.area||0;x.coeHa=x.area?x.coe/x.area:null;x.mbHa=x.area?x.mb/x.area:null;x.prodHa=x.area&&x.q?x.q/x.area:null});
+ for(const id in C)if(C[id].c.ativo==='0'&&!C[id].rb&&!C[id].q&&!C[id].cot)delete C[id]; // inativo sem movimento no período
  const T={rb:0,coe:0,nd:0,cot:0,mb:0,lucro:0};Object.values(C).forEach(x=>{for(const k in T)T[k]+=x[k]});T.mbP=T.rb?T.mb/T.rb*100:null;
  const totDes=sum(Object.values(U).map(u=>u.des));
  return{L,C,T,U,totDes,semRateio}}
@@ -361,7 +364,8 @@ function calcular(F){const L=filtrarLanc(F),sel=F.centros&&F.centros.length?new 
 const ABAS=[['painel','📊','Painel','Painel'],['lanc','💵','Lançamentos','Lançar'],['rel','📑','Relatórios','Relatórios'],['usuarios','👥','Desembolso por usuário','Usuários'],['cad','🗂️','Cadastros','Cadastros'],['config','⚙️','Configuração','Config.']];
 let ABA='painel';try{ABA=localStorage.getItem('agro2d_aba')||'painel'}catch(e){}
 function ir(a,pop){if(!pop&&ABA==='painel'&&a!=='painel')history.pushState({aba:a},'');ABA=a;try{localStorage.setItem('agro2d_aba',a)}catch(e){}render();window.scrollTo(0,0)}
-function render(){$('#nav').innerHTML=ABAS.map(([k,ic,l,c])=>`<button class="${k===ABA?'on':''}" onclick="ir('${k}')" aria-label="${l}"><span class="ic">${ic}</span><span class="lo">${l}</span><span class="cu">${c}</span></button>`).join('');
+function render(){if(FP.centros.length){const v=new Set(centrosVis().map(c=>c.id));FP.centros=FP.centros.filter(x=>v.has(x));if(FP.centros.length===v.size)FP.centros=[]}
+ $('#nav').innerHTML=ABAS.map(([k,ic,l,c])=>`<button class="${k===ABA?'on':''}" onclick="ir('${k}')" aria-label="${l}"><span class="ic">${ic}</span><span class="lo">${l}</span><span class="cu">${c}</span></button>`).join('');
  $('#hSub').textContent=eu()?'Usuário: '+eu().nome:'Gestão de custos e resultados';let b='';
  if(!S.cfg.configurado&&ABA!=='config')return boasVindas();
  if(!eu()&&ABA!=='config')b+=`<div class="banner w">👤 Escolha quem está usando este aparelho em <a href="#" onclick="ir('config');return false">Configuração</a>.</div>`;
@@ -369,26 +373,25 @@ function render(){$('#nav').innerHTML=ABAS.map(([k,ic,l,c])=>`<button class="${k
  $('#app').innerHTML=b+'<div id="v"></div>';V[ABA]($('#v'));statusSync()}
 function boasVindas(){$('#app').innerHTML=`<div class="panel" style="max-width:720px;margin:auto"><h2>Bem-vindo ao Agropecuária 2D 🌽🍉🐑</h2>
  <p class="help">Lance receitas e despesas por cultura, faça rateio entre centros de custo e acompanhe <b>COE, margem bruta e lucro por unidade</b> e o <b>desembolso de cada sócio</b>. Os dados ficam no aparelho (funciona sem internet) e são compartilhados por uma <b>planilha do Google</b> quando há conexão.</p>
- <div class="toolbar"><button class="btn big" onclick="ir('config')">🔗 Conectar à planilha</button><button class="btn sec big" onclick="cfgSet({configurado:true});ir('config')">📴 Usar só neste aparelho por enquanto</button></div>
- <p class="help">Ainda não criou a planilha? Veja o passo a passo em <b>Configuração</b> ou no arquivo LEIA-ME.</p></div>`}
+ <div class="toolbar"><button class="btn big" onclick="ir('config')">🔗 Conectar à planilha</button><button class="btn sec big" onclick="cfgSet({configurado:true});ir('config')">📴 Usar só neste aparelho por enquanto</button></div></div>`}
 
 /* ============ FILTRO DE PERÍODO ============ */
 const FP=(()=>{let f={ini:'',fim:'',centros:[]};try{f=Object.assign(f,JSON.parse(localStorage.getItem('agro2d_filtro')||'{}'))}catch(e){}return f})();
 let FAB=null;
-function filtroH(){const cs=vivos('Centros').sort(byNome);const ab=FAB==null?!cel():FAB;return`<details class="panel np filtro" id="fDet"${ab?' open':''}><summary>🔎 Filtro: ${FP.ini||FP.fim?(FP.ini?fD(FP.ini):'início')+' a '+(FP.fim?fD(FP.fim):'hoje'):'todo o período'} • ${FP.centros.length?FP.centros.length+' centro(s)':'todos os centros'}</summary><div class="toolbar" style="margin-bottom:6px">Período: <input type="date" id="fIni" value="${FP.ini}"> até <input type="date" id="fFim" value="${FP.fim}">
+function filtroH(){const cs=centrosVis();const ab=FAB==null?!cel():FAB;return`<details class="panel np filtro" id="fDet"${ab?' open':''}><summary>🔎 Filtro: ${FP.ini||FP.fim?(FP.ini?fD(FP.ini):'início')+' a '+(FP.fim?fD(FP.fim):'hoje'):'todo o período'} • ${FP.centros.length?FP.centros.length+' centro(s)':'todos os centros'}</summary><div class="toolbar" style="margin-bottom:6px">Período: <input type="date" id="fIni" value="${FP.ini}"> até <input type="date" id="fFim" value="${FP.fim}">
  <button class="btn sec sm" data-r="tudo">Tudo</button><button class="btn sec sm" data-r="ano">Este ano</button><button class="btn sec sm" data-r="12m">Últimos 12 meses</button><button class="btn sec sm" data-r="ant">Ano anterior</button></div>
  <div class="chips">${cs.map(c=>`<span class="chip ${!FP.centros.length||FP.centros.includes(c.id)?'on':''}" data-c="${c.id}">${esc(c.nome)}${c.ciclo?' '+esc(c.ciclo):''}</span>`).join('')}</div><div class="help" style="margin-top:4px">Toque nos centros para incluir/excluir do cálculo.</div></details>`}
 function filtroEv(re){const sv=()=>{try{localStorage.setItem('agro2d_filtro',JSON.stringify(FP))}catch(e){}re()};
  $('#fDet').querySelector('summary').onclick=()=>{FAB=!$('#fDet').open};
  $('#fIni').onchange=e=>{FP.ini=e.target.value;sv()};$('#fFim').onchange=e=>{FP.fim=e.target.value;sv()};
  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const t=hoje(),Y=+t.slice(0,4);({tudo:()=>{FP.ini='';FP.fim=''},ano:()=>{FP.ini=Y+'-01-01';FP.fim=Y+'-12-31'},'12m':()=>{FP.ini=addDias(t,-364);FP.fim=t},ant:()=>{FP.ini=(Y-1)+'-01-01';FP.fim=(Y-1)+'-12-31'}})[b.dataset.r]();sv()});
- document.querySelectorAll('.chip[data-c]').forEach(ch=>ch.onclick=()=>{const all=vivos('Centros').map(c=>c.id);let s=FP.centros.length?FP.centros.slice():all.slice();const id=ch.dataset.c;s=s.includes(id)?s.filter(x=>x!==id):[...s,id];FP.centros=s.length===all.length||!s.length?[]:s;sv()})}
+ document.querySelectorAll('.chip[data-c]').forEach(ch=>ch.onclick=()=>{const all=centrosVis().map(c=>c.id);let s=FP.centros.length?FP.centros.slice():all.slice();const id=ch.dataset.c;s=s.includes(id)?s.filter(x=>x!==id):[...s,id];FP.centros=s.length===all.length||!s.length?[]:s;sv()})}
 
 /* ============ PAINEL ============ */
 function painel(el){const R=calcular(FP),t=hoje(),cs=Object.values(R.C);
  const pend=vivos('Lancamentos').filter(l=>l.status==='Pendente').sort((a,b)=>(a.vencimento||a.data)<(b.vencimento||b.data)?-1:1);
  const meu=eu()?R.U[eu().id]:null;
- el.innerHTML=`<div class="toolbar np"><button class="btn big" onclick="formLanc('Despesa')">➖ Nova despesa</button><button class="btn big" style="background:#2c6aa8" onclick="formLanc('Receita')">➕ Nova receita (venda)</button></div>${filtroH()}
+ el.innerHTML=`<div class="toolbar np"><button class="btn red big" onclick="formLanc('Despesa')">➖ Nova despesa</button><button class="btn big" style="background:#2c6aa8" onclick="formLanc('Receita')">➕ Nova receita (venda)</button></div>${filtroH()}
  <div class="cards"><div class="card"><div class="l">Receita bruta</div><div class="x pos">${fR(R.T.rb)}</div></div><div class="card"><div class="l">COE (custo operacional efetivo)</div><div class="x neg">${fR(R.T.coe)}</div></div>
  <div class="card"><div class="l">Margem bruta (RB − COE)</div><div class="x ${R.T.mb>=0?'pos':'neg'}">${fR(R.T.mb)}</div><div class="s">${fP(R.T.mbP)} da receita</div></div><div class="card"><div class="l">Lucro (RB − COT)</div><div class="x ${R.T.lucro>=0?'pos':'neg'}">${fR(R.T.lucro)}</div><div class="s">COT = COE + ${fR(R.T.nd)} não desemb.</div></div>
  ${meu?`<div class="card"><div class="l">Meu desembolso (${esc(eu().nome)})</div><div class="x">${fR(meu.des)}</div><div class="s">${fP(R.totDes?meu.des/R.totDes*100:null)} do total</div></div>`:''}</div>
@@ -405,7 +408,7 @@ function lanc(el){const st=VS.lf=VS.lf||{mes:'',tipo:'',centro:'',cat:'',user:''
  const meses=[...new Set(vivos('Lancamentos').map(l=>l.data.slice(0,7)))].sort().reverse(),sel=(id,v,os)=>`<select id="${id}">${os.map(o=>opt(o[0],o[1],v)).join('')}</select>`;
  const rec=sum(rows.filter(l=>l.tipo==='Receita').map(l=>l.valor)),des=sum(rows.filter(l=>l.tipo==='Despesa').map(l=>l.valor));
  el.innerHTML=`<h2>Lançamentos</h2><details class="panel np filtro" id="lDet"${(VS.lfAb==null?!cel():VS.lfAb)?' open':''}><summary>Filtros: ${Object.values(st).filter(Boolean).length||'nenhum'} ${Object.values(st).filter(Boolean).length?'ativo(s)':'ativo'}</summary><div class="toolbar" style="margin:0">${sel('lM',st.mes,[['','Todos os meses'],...meses.map(m=>[m,m.slice(5)+'/'+m.slice(0,4)])])}${sel('lT',st.tipo,[['','Receitas e despesas'],['Receita','Receitas'],['Despesa','Despesas']])}
- ${sel('lC',st.centro,[['','Todos os centros'],...vivos('Centros').sort(byNome).map(c=>[c.id,c.nome+(c.ciclo?' '+c.ciclo:'')])])}${sel('lK',st.cat,[['','Todas as categorias'],...vivos('Categorias').sort(byNome).map(k=>[k.id,k.nome])])}
+ ${sel('lC',st.centro,[['','Todos os centros'],...centrosVis().map(c=>[c.id,c.nome+(c.ciclo?' '+c.ciclo:'')])])}${sel('lK',st.cat,[['','Todas as categorias'],...vivos('Categorias').sort(byNome).map(k=>[k.id,k.nome])])}
  ${sel('lU',st.user,[['','Todos os usuários'],...vivos('Usuarios').sort(byNome).map(u=>[u.id,u.nome])])}${sel('lS',st.status,[['','Pagos e pendentes'],['Pago','Pagos/recebidos'],['Pendente','Pendentes']])}</div></details>
  <div class="cards"><div class="card"><div class="l">Receitas (filtro)</div><div class="x pos">${fR(rec)}</div></div><div class="card"><div class="l">Despesas (filtro)</div><div class="x neg">${fR(des)}</div></div><div class="card"><div class="l">Saldo</div><div class="x ${rec-des>=0?'pos':'neg'}">${fR(rec-des)}</div></div></div><div id="lst"></div>`;
  $('#lDet').querySelector('summary').onclick=()=>{VS.lfAb=!$('#lDet').open};
@@ -416,7 +419,7 @@ function lanc(el){const st=VS.lf=VS.lf||{mes:'',tipo:'',centro:'',cat:'',user:''
   {h:'Valor',v:l=>+l.valor,t:'$',f:l=>`<span class="${l.tipo==='Receita'?'pos':'neg'}">${fR(l.valor)}</span>`},{h:'Usuário',v:l=>S.T.Usuarios[l.usuarioId]?.nome||l.usuario},
   {h:'Situação',v:l=>l.status,f:l=>l.status==='Pendente'?`<span class="tag y">${l.tipo==='Receita'?'A receber':'A pagar'}${l.vencimento?' '+fD(l.vencimento):''}</span>`:`<span class="tag">${l.tipo==='Receita'?'Recebido':'Pago'}</span>`},
   {h:'Sinc.',v:l=>S.pend[l.id]?'pendente':'ok',f:l=>S.pend[l.id]?'⏳':'✔'}],
-  {tb:`<button class="btn" onclick="formLanc('Despesa')">➖ Despesa</button><button class="btn" style="background:#2c6aa8" onclick="formLanc('Receita')">➕ Receita</button>`,
+  {tb:`<button class="btn red" onclick="formLanc('Despesa')">➖ Despesa</button><button class="btn" style="background:#2c6aa8" onclick="formLanc('Receita')">➕ Receita</button>`,
    cartao:l=>`<div class="lc-t"><span>${esc(l.descricao||(l.tipo==='Receita'?'Venda':l.categoria)||'')}</span><span class="${l.tipo==='Receita'?'pos':'neg'}">${l.tipo==='Receita'?'+':'−'} ${fR(l.valor)}</span></div><div class="lc-s">${fD(l.data)} • ${l.tipo==='Receita'?'Venda':esc(S.T.Categorias[l.categoriaId]?.nome||l.categoria||'')}</div><div class="lc-s">${esc(rateio(l).map(x=>(S.T.Centros[x.c]?.nome||'?')+(x.p<100?' '+fN(x.p,0)+'%':'')).join(', '))} • 👤 ${esc(S.T.Usuarios[l.usuarioId]?.nome||l.usuario||'')}${S.pend[l.id]&&S.cfg.url?' • ⏳ a enviar':''}</div>${l.status==='Pendente'?`<div class="lc-a"><span class="tag y" style="align-self:center">${l.tipo==='Receita'?'A receber':'A pagar'}${l.vencimento?' '+fD(l.vencimento):''}</span><button class="btn sec sm" data-a="pg">✅ Marcar ${l.tipo==='Receita'?'recebido':'pago'}</button></div>`:''}`,
    acoes:l=>(l.status==='Pendente'?'<button data-a="pg" title="Marcar como pago/recebido">✅</button>':'')+'<button data-a="ed" title="Editar">✏️</button>',
    acao:(a,id)=>{const l=S.T.Lancamentos[id];if(a==='ed')formLanc(l.tipo,l);if(a==='pg'&&confirm('Marcar como '+(l.tipo==='Receita'?'recebido':'pago')+'?')){gravar('Lancamentos',Object.assign({},l,{status:'Pago'}));render()}}})}
@@ -496,15 +499,7 @@ function config(el){const np=Object.keys(S.pend).length,us=ativos('Usuarios');
  <div class="panel"><h3>👤 Quem usa este aparelho</h3><p class="help">Usado como padrão no campo "Pago por" e para registrar o autor dos lançamentos.</p>
  <div class="toolbar"><select id="cUser"><option value="">— selecione —</option>${us.map(u=>opt(u.id,u.nome,S.cfg.usuarioId)).join('')}</select><button class="btn sec" onclick="formCad('Usuarios')">➕ Cadastrar novo usuário</button></div>
  <h3 style="margin-top:16px">💾 Cópia de segurança</h3><p class="help">A planilha do Google já é a cópia central. Mesmo assim, você pode baixar um arquivo com tudo deste aparelho.</p>
- <div class="toolbar"><button class="btn sec" id="cBk">⬇ Baixar backup (JSON)</button><button class="btn sec" id="cCsv">⬇ Todos os lançamentos (CSV)</button></div></div></div>
- <div class="panel"><h3>📋 Como criar a planilha (uma única vez)</h3><ol class="help">
- <li>No Google Drive, crie uma <b>Planilha Google</b> nova (ex.: "Agropecuária 2D — dados").</li>
- <li>Menu <b>Extensões › Apps Script</b>. Apague o conteúdo e cole todo o arquivo <b>Code.gs</b> que acompanha este app.</li>
- <li>Na linha <code>const CHAVE = 'TROQUE-ESTA-CHAVE';</code> coloque uma senha sua (ex.: <code>milho-2d-8472</code>). Salve (💾).</li>
- <li>No topo, escolha a função <b>configurar</b> e clique em <b>Executar</b>. Autorize com sua conta Google (em "app não verificado" clique em <i>Avançado › Acessar</i>).</li>
- <li><b>Implantar › Nova implantação</b> › tipo <b>App da Web</b>. Executar como: <b>Eu</b>. Quem pode acessar: <b>Qualquer pessoa</b>. Clique em Implantar e copie o <b>URL do app da Web</b>.</li>
- <li>Em cada aparelho, cole o URL e a chave acima e toque em <b>Testar e conectar</b>.</li></ol>
- <p class="help">⚠ Guarde o endereço e a chave como uma senha: quem tiver os dois consegue lançar dados. Não apague nem renomeie as colunas da planilha. Para corrigir algo direto na planilha, altere só textos e valores simples (data, descrição, valor).</p></div>`;
+ <div class="toolbar"><button class="btn sec" id="cBk">⬇ Baixar backup (JSON)</button><button class="btn sec" id="cCsv">⬇ Todos os lançamentos (CSV)</button></div></div></div>`;
  $('#cSave').onclick=async()=>{const url=$('#cUrl').value.trim(),ch=$('#cKey').value.trim();if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(url))return alert('Endereço inválido. Ele deve começar com https://script.google.com/');if(!ch)return alert('Informe a chave.');
   const b=$('#cSave');b.disabled=true;b.textContent='Testando…';try{const j=await chamar({acao:'ping'},url,ch);if(S.cfg.url!==url)zerarCursor();cfgSet({url,chave:ch,configurado:true});erroSync='';toast('Conectado à planilha "'+j.planilha+'"');await sincronizar();render()}catch(e){alert('Não foi possível conectar:\n'+e.message)}finally{b.disabled=false;b.textContent='Testar e conectar'}};
  if($('#cOff'))$('#cOff').onclick=()=>{if(confirm('Desconectar este aparelho da planilha? Os dados locais continuam aqui.')){cfgSet({url:''});render()}};
